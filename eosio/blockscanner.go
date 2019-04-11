@@ -96,21 +96,13 @@ func (bs *EOSBlockScanner) ScanBlockTask() {
 	if currentHeight == 0 {
 		bs.wm.Log.Std.Info("No records found in local, get current block as the local!")
 
-		// get head block
-		infoResp, err := bs.wm.Api.GetInfo()
+		headBlock, err := bs.GetGlobalHeadBlock()
 		if err != nil {
-			bs.wm.Log.Std.Info("block scanner can not get info; unexpected error:%v", err)
-			return
+			bs.wm.Log.Std.Info("get head block error, err=%v", err)
 		}
 
-		block, err := bs.wm.Api.GetBlockByNum(infoResp.HeadBlockNum - 1)
-		if err != nil {
-			bs.wm.Log.Std.Info("block scanner can not get block by height; unexpected error:%v", err)
-			return
-		}
-
-		currentHash = block.ID.String()
-		currentHeight = block.BlockNum
+		currentHash = headBlock.Previous.String()
+		currentHeight = headBlock.BlockNum - 1
 	}
 
 	for {
@@ -119,9 +111,9 @@ func (bs *EOSBlockScanner) ScanBlockTask() {
 			return
 		}
 
-		infoResp, err := bs.wm.Api.GetInfo()
+		infoResp, err := bs.GetChainInfo()
 		if err != nil {
-			bs.wm.Log.Errorf("get max height of eth failed, err=%v", err)
+			bs.wm.Log.Errorf("get chain info failed, err=%v", err)
 			break
 		}
 
@@ -185,9 +177,9 @@ func (bs *EOSBlockScanner) ScanBlockTask() {
 			}
 
 		} else {
-			err := bs.BatchExtractTrasactions(uint64(currentHeight), currentHash, block.Timestamp.Unix(), block.Transactions)
+			err := bs.BatchExtractTransactions(uint64(currentHeight), currentHash, block.Timestamp.Unix(), block.Transactions)
 			if err != nil {
-				bs.wm.Log.Std.Error("block scanner ran BatchExtractTrasactions occured unexpected error: %v", err)
+				bs.wm.Log.Std.Error("block scanner ran BatchExtractTransactions occured unexpected error: %v", err)
 			}
 
 			//重置当前区块的hash
@@ -214,8 +206,8 @@ func (bs *EOSBlockScanner) newBlockNotify(block *eos.BlockResp) {
 	bs.NewBlockNotify(header)
 }
 
-// BatchExtractTrasactions 批量提取交易单
-func (bs *EOSBlockScanner) BatchExtractTrasactions(blockHeight uint64, blockHash string, blockTime int64, transactions []eos.TransactionReceipt) error {
+// BatchExtractTransactions 批量提取交易单
+func (bs *EOSBlockScanner) BatchExtractTransactions(blockHeight uint64, blockHash string, blockTime int64, transactions []eos.TransactionReceipt) error {
 
 	var (
 		quit       = make(chan struct{})
@@ -528,6 +520,40 @@ func (bs *EOSBlockScanner) newExtractDataNotify(height uint64, extractData map[s
 	return nil
 }
 
+//ScanBlock 扫描指定高度区块
+func (bs *EOSBlockScanner) ScanBlock(height uint64) error {
+
+	block, err := bs.wm.Api.GetBlockByNum(uint32(height))
+	if err != nil {
+		bs.wm.Log.Std.Info("block scanner can not get new block data; unexpected error: %v", err)
+
+		//记录未扫区块
+		unscanRecord := NewUnscanRecord(height, "", err.Error())
+		bs.SaveUnscanRecord(unscanRecord)
+		bs.wm.Log.Std.Info("block height: %d extract failed.", height)
+		return err
+	}
+
+	bs.scanBlock(block)
+
+	return nil
+}
+
+func (bs *EOSBlockScanner) scanBlock(block *eos.BlockResp) error {
+
+	bs.wm.Log.Std.Info("block scanner scanning height: %d ...", block.ID.String())
+
+	err := bs.BatchExtractTransactions(uint64(block.BlockNum), block.ID.String(), block.Timestamp.Unix(), block.Transactions)
+	if err != nil {
+		bs.wm.Log.Std.Info("block scanner can not extractRechargeRecords; unexpected error: %v", err)
+	}
+
+	//通知新区块给观测者，异步处理
+	bs.newBlockNotify(block)
+
+	return nil
+}
+
 //SetRescanBlockHeight 重置区块链扫描高度
 func (bs *EOSBlockScanner) SetRescanBlockHeight(height uint64) error {
 	height = height - 1
@@ -543,4 +569,43 @@ func (bs *EOSBlockScanner) SetRescanBlockHeight(height uint64) error {
 	bs.SaveLocalBlockHead(uint32(height), block.Hash)
 
 	return nil
+}
+
+func (bs *EOSBlockScanner) GetGlobalMaxBlockHeight() uint64 {
+	headBlock, err := bs.GetGlobalHeadBlock()
+	if err != nil {
+		bs.wm.Log.Std.Info("get global head block error;unexpected error:%v", err)
+		return 0
+	}
+	return uint64(headBlock.BlockNum)
+}
+
+func (bs *EOSBlockScanner) GetGlobalHeadBlock() (block *eos.BlockResp, err error) {
+	infoResp, err := bs.GetChainInfo()
+	if err != nil {
+		bs.wm.Log.Std.Info("get chain info error;unexpected error:%v", err)
+		return
+	}
+
+	block, err = bs.wm.Api.GetBlockByNum(infoResp.HeadBlockNum - 1)
+	if err != nil {
+		bs.wm.Log.Std.Info("block scanner can not get block by height; unexpected error:%v", err)
+		return
+	}
+
+	return
+}
+
+func (bs *EOSBlockScanner) GetChainInfo() (infoResp *eos.InfoResp, err error) {
+	infoResp, err = bs.wm.Api.GetInfo()
+	if err != nil {
+		bs.wm.Log.Std.Info("block scanner can not get info; unexpected error:%v", err)
+	}
+	return
+}
+
+//GetScannedBlockHeight 获取已扫区块高度
+func (bs *EOSBlockScanner) GetScannedBlockHeight() uint64 {
+	height, _, _ := bs.GetLocalBlockHead()
+	return uint64(height)
 }
