@@ -17,6 +17,7 @@ package eosio
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -45,7 +46,7 @@ type EOSBlockScanner struct {
 
 //ExtractResult extract result
 type ExtractResult struct {
-	extractData map[string]*openwallet.TxExtractData
+	extractData map[string][]*openwallet.TxExtractData
 	TxID        string
 	BlockHash   string
 	BlockHeight uint64
@@ -330,7 +331,7 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 			BlockHash:   blockHash,
 			BlockHeight: blockHeight,
 			TxID:        transaction.Transaction.ID.String(),
-			extractData: make(map[string]*openwallet.TxExtractData),
+			extractData: make(map[string][]*openwallet.TxExtractData),
 			BlockTime:   blockTime,
 		}
 	)
@@ -392,17 +393,17 @@ func (bs *EOSBlockScanner) InitExtractResult(action TransferAction, result *Extr
 
 	data := action.TransferData
 
-	// var sourceKey string
-	// if optType == 1 {
-	// 	sourceKey = data.From
-	// } else if optType == 2 {
-	// 	sourceKey = data.To
-	// }
+	var sourceKey string
+	if optType == 1 {
+		sourceKey = data.From
+	} else if optType == 2 {
+		sourceKey = data.To
+	}
 
-	// txExtractDataArray := result.extractData[sourceKey]
-	// if txExtractDataArray == nil {
-	// 	txExtractDataArray = make([]*openwallet.TxExtractData, 0)
-	// }
+	txExtractDataArray := result.extractData[sourceKey]
+	if txExtractDataArray == nil {
+		txExtractDataArray = make([]*openwallet.TxExtractData, 0)
+	}
 
 	txExtractData := &openwallet.TxExtractData{}
 
@@ -451,8 +452,8 @@ func (bs *EOSBlockScanner) InitExtractResult(action TransferAction, result *Extr
 		bs.extractTxOutput(action, txExtractData)
 	}
 
-	// txExtractDataArray = append(txExtractDataArray, txExtractData)
-	// result.extractData[sourceKey] = txExtractDataArray
+	txExtractDataArray = append(txExtractDataArray, txExtractData)
+	result.extractData[sourceKey] = txExtractDataArray
 }
 
 //extractTxInput 提取交易单输入部分,无需手续费，所以只包含1个TxInput
@@ -504,22 +505,42 @@ func (bs *EOSBlockScanner) extractTxOutput(action TransferAction, txExtractData 
 }
 
 //newExtractDataNotify 发送通知
-func (bs *EOSBlockScanner) newExtractDataNotify(height uint64, extractData map[string]*openwallet.TxExtractData) error {
+func (bs *EOSBlockScanner) newExtractDataNotify(height uint64, extractData map[string][]*openwallet.TxExtractData) error {
 	for o := range bs.Observers {
-		for key, data := range extractData {
-			err := o.BlockExtractDataNotify(key, data)
-			if err != nil {
-				log.Error("BlockExtractDataNotify unexpected error:", err)
-				//记录未扫区块
-				unscanRecord := NewUnscanRecord(height, "", "ExtractData Notify failed.")
-				err = bs.SaveUnscanRecord(unscanRecord)
+		for key, array := range extractData {
+			for _, item := range array {
+				err := o.BlockExtractDataNotify(key, item)
 				if err != nil {
-					log.Std.Error("block height: %d, save unscan record failed. unexpected error: %v", height, err.Error())
-				}
+					log.Error("BlockExtractDataNotify unexpected error:", err)
+					//记录未扫区块
+					unscanRecord := NewUnscanRecord(height, "", "ExtractData Notify failed.")
+					err = bs.SaveUnscanRecord(unscanRecord)
+					if err != nil {
+						log.Std.Error("block height: %d, save unscan record failed. unexpected error: %v", height, err.Error())
+					}
 
+				}
 			}
+
 		}
 	}
+
+	return nil
+}
+
+//SetRescanBlockHeight 重置区块链扫描高度
+func (bs *EOSBlockScanner) SetRescanBlockHeight(height uint64) error {
+	height = height - 1
+	if height < 0 {
+		return errors.New("block height to rescan must greater than 0.")
+	}
+
+	block, err := bs.GetLocalBlock(uint32(height))
+	if err != nil {
+		return err
+	}
+
+	bs.SaveLocalBlockHead(uint32(height), block.Hash)
 
 	return nil
 }
