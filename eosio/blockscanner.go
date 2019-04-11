@@ -329,6 +329,10 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 	)
 
 	//提出交易单明细
+	if transaction.Transaction.Packed == nil {
+		bs.wm.Log.Std.Debug("trx packed empty: %s", transaction.Transaction.ID)
+		return ExtractResult{Success:true}
+	}
 	signedTransaction, _ := transaction.Transaction.Packed.Unpack()
 
 	for _, action := range signedTransaction.Actions {
