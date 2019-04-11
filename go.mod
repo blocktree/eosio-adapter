@@ -3,7 +3,7 @@ module github.com/blocktree/eosio-adapter
 require (
 	github.com/asdine/storm v2.1.2+incompatible
 	github.com/astaxie/beego v1.11.1
-	github.com/blocktree/go-owcdrivers v1.0.0
+	github.com/blocktree/go-owcdrivers v1.0.1
 	github.com/blocktree/go-owcrypt v1.0.0
 	github.com/blocktree/openwallet v1.2.1
 	github.com/eoscanada/eos-go v0.8.10
