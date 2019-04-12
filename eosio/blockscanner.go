@@ -261,7 +261,7 @@ func (bs *EOSBlockScanner) BatchExtractTransactions(blockHeight uint64, blockHas
 			bs.extractingCH <- struct{}{}
 			go func(mBlockHeight uint64, mTx *eos.TransactionReceipt, end chan struct{}, mProducer chan<- ExtractResult) {
 				//导出提出的交易
-				mProducer <- bs.ExtractTransaction(mBlockHeight, eBlockHash, eBlockTime, mTx, bs.ScanAddressFunc)
+				mProducer <- bs.ExtractTransaction(mBlockHeight, eBlockHash, eBlockTime, mTx, bs.ScanTargetFunc)
 				//释放
 				<-end
 
@@ -316,7 +316,7 @@ func (bs *EOSBlockScanner) extractRuntime(producer chan ExtractResult, worker ch
 }
 
 // ExtractTransaction 提取交易单
-func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash string, blockTime int64, transaction *eos.TransactionReceipt, scanAddressFunc openwallet.BlockScanAddressFunc) ExtractResult {
+func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash string, blockTime int64, transaction *eos.TransactionReceipt, scanTargetFunc openwallet.BlockScanTargetFunc) ExtractResult {
 	var (
 		success = true
 		result  = ExtractResult{
@@ -331,7 +331,7 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 	//提出交易单明细
 	if transaction.Transaction.Packed == nil {
 		bs.wm.Log.Std.Debug("trx packed empty: %s", transaction.Transaction.ID)
-		return ExtractResult{Success:true}
+		return ExtractResult{Success: true}
 	}
 	signedTransaction, _ := transaction.Transaction.Packed.Unpack()
 
@@ -355,26 +355,22 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 				bs.wm.Log.Std.Error("parse data error: %s", _err)
 				success = false
 			} else {
-				var (
-					ok1 = false
-					ok2 = false
-				)
-				if scanAddressFunc == nil {
-					ok1 = true
-					ok2 = true
-				} else {
-					//订阅地址为交易单中的发送者
-					_, ok1 = scanAddressFunc(data.From)
-					//订阅地址为交易单中的接收者
-					_, ok2 = scanAddressFunc(data.To)
+				if scanTargetFunc == nil {
+					bs.wm.Log.Std.Error("scanTargetFunc is not configurated")
+					return ExtractResult{Success: false}
 				}
 
+				//订阅地址为交易单中的发送者
+				sourceKeyFrom, ok1 := scanTargetFunc(openwallet.ScanTarget{Alias: data.From, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
+				//订阅地址为交易单中的接收者
+				sourceKeyTo, ok2 := scanTargetFunc(openwallet.ScanTarget{Alias: data.To, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
+
 				if ok1 {
-					bs.InitExtractResult(TransferAction{action, data}, &result, 1)
+					bs.InitExtractResult(sourceKeyFrom, TransferAction{action, data}, &result, 1)
 				}
 
 				if ok2 {
-					bs.InitExtractResult(TransferAction{action, data}, &result, 2)
+					bs.InitExtractResult(sourceKeyTo, TransferAction{action, data}, &result, 2)
 				}
 			}
 		}
@@ -385,16 +381,9 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 }
 
 //InitExtractResult optType = 1: 输入提取，2：输出提取
-func (bs *EOSBlockScanner) InitExtractResult(action TransferAction, result *ExtractResult, optType int64) {
+func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAction, result *ExtractResult, optType int64) {
 
 	data := action.TransferData
-
-	var sourceKey string
-	if optType == 1 {
-		sourceKey = data.From
-	} else if optType == 2 {
-		sourceKey = data.To
-	}
 
 	txExtractDataArray := result.extractData[sourceKey]
 	if txExtractDataArray == nil {
@@ -416,9 +405,10 @@ func (bs *EOSBlockScanner) InitExtractResult(action TransferAction, result *Extr
 	}
 	coin.ContractID = string(action.Account)
 	coin.Contract = openwallet.SmartContract{
+		Symbol:     bs.wm.Symbol(),
 		ContractID: string(action.Account),
 		Address:    string(action.Account),
-		Symbol:     symbol,
+		Token:      symbol,
 	}
 
 	transx := &openwallet.Transaction{

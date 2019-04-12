@@ -60,14 +60,13 @@ func TestSubscribeAddress_EOS(t *testing.T) {
 		symbol     = "EOS"
 		accountID  = "CbnmpvJNsUjtEMRoy5Nf5FGTyfjLbke8FuKjKtEUc7fs"
 		addrs      = map[string]string{
-			"LV9Cc8ari9qDzx3URdvb4ofZf8mThoxCZa": accountID,
-			"LLevkg1aUiECvY6Uda1bvDbqa38zykjLyR": "ltca",
+			"fanyinghaoio": accountID,
 		}
 	)
 
 	//GetSourceKeyByAddress 获取地址对应的数据源标识
-	scanAddressFunc := func(address string) (string, bool) {
-		key, ok := addrs[address]
+	scanAddressFunc := func(target openwallet.ScanTarget) (string, bool) {
+		key, ok := addrs[target.Alias]
 		if !ok {
 			return "", false
 		}
@@ -85,6 +84,7 @@ func TestSubscribeAddress_EOS(t *testing.T) {
 
 	c, err := config.NewConfig("ini", absFile)
 	if err != nil {
+		log.Error("missing config")
 		return
 	}
 	assetsMgr.LoadAssetsConfig(c)
@@ -103,7 +103,7 @@ func TestSubscribeAddress_EOS(t *testing.T) {
 		return
 	}
 
-	scanner.SetBlockScanAddressFunc(scanAddressFunc)
+	scanner.SetBlockScanTargetFunc(scanAddressFunc)
 
 	sub := subscriberSingle{}
 	scanner.AddObserver(&sub)
