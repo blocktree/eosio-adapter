@@ -550,21 +550,21 @@ func (bs *EOSBlockScanner) scanBlock(block *eos.BlockResp) error {
 
 //SetRescanBlockHeight 重置区块链扫描高度
 func (bs *EOSBlockScanner) SetRescanBlockHeight(height uint64) error {
-	height = height - 1
-	if height < 0 {
-		return errors.New("block height to rescan must greater than 0.")
+	if height <= 0 {
+		return errors.New("block height to rescan must greater than 0. ")
 	}
 
-	block, err := bs.GetLocalBlock(uint32(height))
+	block, err := bs.wm.Api.GetBlockByNum(uint32(height - 1))
 	if err != nil {
 		return err
 	}
 
-	bs.SaveLocalBlockHead(uint32(height), block.Hash)
+	bs.SaveLocalBlockHead(uint32(height), block.ID.String())
 
 	return nil
 }
 
+// GetGlobalMaxBlockHeight GetGlobalMaxBlockHeight
 func (bs *EOSBlockScanner) GetGlobalMaxBlockHeight() uint64 {
 	headBlock, err := bs.GetGlobalHeadBlock()
 	if err != nil {
@@ -574,6 +574,7 @@ func (bs *EOSBlockScanner) GetGlobalMaxBlockHeight() uint64 {
 	return uint64(headBlock.BlockNum)
 }
 
+//GetGlobalHeadBlock GetGlobalHeadBlock
 func (bs *EOSBlockScanner) GetGlobalHeadBlock() (block *eos.BlockResp, err error) {
 	infoResp, err := bs.GetChainInfo()
 	if err != nil {
@@ -590,6 +591,7 @@ func (bs *EOSBlockScanner) GetGlobalHeadBlock() (block *eos.BlockResp, err error
 	return
 }
 
+//GetChainInfo GetChainInfo
 func (bs *EOSBlockScanner) GetChainInfo() (infoResp *eos.InfoResp, err error) {
 	infoResp, err = bs.wm.Api.GetInfo()
 	if err != nil {
