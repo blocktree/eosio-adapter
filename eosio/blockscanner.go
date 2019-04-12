@@ -559,7 +559,7 @@ func (bs *EOSBlockScanner) SetRescanBlockHeight(height uint64) error {
 		return err
 	}
 
-	bs.SaveLocalBlockHead(uint32(height), block.ID.String())
+	bs.SaveLocalBlockHead(uint32(height-1), block.ID.String())
 
 	return nil
 }
