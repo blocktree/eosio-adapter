@@ -18,14 +18,14 @@ package eosio
 import (
 	"encoding/hex"
 	"fmt"
-	"time"
-
-	"github.com/blocktree/openwallet/log"
-	"github.com/blocktree/openwallet/openwallet"
-	eos "github.com/eoscanada/eos-go"
-	"github.com/eoscanada/eos-go/btcsuite/btcd/btcec"
 	"github.com/eoscanada/eos-go/ecc"
 	"github.com/eoscanada/eos-go/token"
+	"time"
+
+	"github.com/blocktree/go-owcdrivers/eosSignature"
+	"github.com/blocktree/openwallet/log"
+	"github.com/blocktree/openwallet/openwallet"
+	"github.com/eoscanada/eos-go"
 	"github.com/shopspring/decimal"
 )
 
@@ -185,7 +185,6 @@ func (decoder *TransactionDecoder) SignRawTransaction(wrapper openwallet.WalletD
 			}
 			decoder.wm.Log.Debug("privateKey:", hex.EncodeToString(keyBytes))
 
-			privKey, _ := btcec.PrivKeyFromBytes(btcec.S256(), keyBytes)
 			hash, err := hex.DecodeString(keySignature.Message)
 			if err != nil {
 				return fmt.Errorf("decoder transaction hash failed, unexpected err: %v", err)
@@ -193,7 +192,7 @@ func (decoder *TransactionDecoder) SignRawTransaction(wrapper openwallet.WalletD
 
 			decoder.wm.Log.Debug("hash:", hash)
 
-			sig, err := privKey.SignCanonical(btcec.S256(), hash)
+			sig, err := eosSignature.SignCanonical(keyBytes, hash)
 			if err != nil {
 				return fmt.Errorf("sign transaction hash failed, unexpected err: %v", err)
 			}

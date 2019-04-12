@@ -17,6 +17,7 @@ package eosio
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -45,7 +46,7 @@ type EOSBlockScanner struct {
 
 //ExtractResult extract result
 type ExtractResult struct {
-	extractData map[string]*openwallet.TxExtractData
+	extractData map[string][]*openwallet.TxExtractData
 	TxID        string
 	BlockHash   string
 	BlockHeight uint64
@@ -95,21 +96,13 @@ func (bs *EOSBlockScanner) ScanBlockTask() {
 	if currentHeight == 0 {
 		bs.wm.Log.Std.Info("No records found in local, get current block as the local!")
 
-		// get head block
-		infoResp, err := bs.wm.Api.GetInfo()
+		headBlock, err := bs.GetGlobalHeadBlock()
 		if err != nil {
-			bs.wm.Log.Std.Info("block scanner can not get info; unexpected error:%v", err)
-			return
+			bs.wm.Log.Std.Info("get head block error, err=%v", err)
 		}
 
-		block, err := bs.wm.Api.GetBlockByNum(infoResp.HeadBlockNum - 1)
-		if err != nil {
-			bs.wm.Log.Std.Info("block scanner can not get block by height; unexpected error:%v", err)
-			return
-		}
-
-		currentHash = block.ID.String()
-		currentHeight = block.BlockNum
+		currentHash = headBlock.Previous.String()
+		currentHeight = headBlock.BlockNum - 1
 	}
 
 	for {
@@ -118,9 +111,9 @@ func (bs *EOSBlockScanner) ScanBlockTask() {
 			return
 		}
 
-		infoResp, err := bs.wm.Api.GetInfo()
+		infoResp, err := bs.GetChainInfo()
 		if err != nil {
-			bs.wm.Log.Errorf("get max height of eth failed, err=%v", err)
+			bs.wm.Log.Errorf("get chain info failed, err=%v", err)
 			break
 		}
 
@@ -184,9 +177,9 @@ func (bs *EOSBlockScanner) ScanBlockTask() {
 			}
 
 		} else {
-			err := bs.BatchExtractTrasactions(uint64(currentHeight), currentHash, block.Timestamp.Unix(), block.Transactions)
+			err := bs.BatchExtractTransactions(uint64(currentHeight), currentHash, block.Timestamp.Unix(), block.Transactions)
 			if err != nil {
-				bs.wm.Log.Std.Error("block scanner ran BatchExtractTrasactions occured unexpected error: %v", err)
+				bs.wm.Log.Std.Error("block scanner ran BatchExtractTransactions occured unexpected error: %v", err)
 			}
 
 			//重置当前区块的hash
@@ -213,8 +206,8 @@ func (bs *EOSBlockScanner) newBlockNotify(block *eos.BlockResp) {
 	bs.NewBlockNotify(header)
 }
 
-// BatchExtractTrasactions 批量提取交易单
-func (bs *EOSBlockScanner) BatchExtractTrasactions(blockHeight uint64, blockHash string, blockTime int64, transactions []eos.TransactionReceipt) error {
+// BatchExtractTransactions 批量提取交易单
+func (bs *EOSBlockScanner) BatchExtractTransactions(blockHeight uint64, blockHash string, blockTime int64, transactions []eos.TransactionReceipt) error {
 
 	var (
 		quit       = make(chan struct{})
@@ -268,7 +261,7 @@ func (bs *EOSBlockScanner) BatchExtractTrasactions(blockHeight uint64, blockHash
 			bs.extractingCH <- struct{}{}
 			go func(mBlockHeight uint64, mTx *eos.TransactionReceipt, end chan struct{}, mProducer chan<- ExtractResult) {
 				//导出提出的交易
-				mProducer <- bs.ExtractTransaction(mBlockHeight, eBlockHash, eBlockTime, mTx, bs.ScanAddressFunc)
+				mProducer <- bs.ExtractTransaction(mBlockHeight, eBlockHash, eBlockTime, mTx, bs.ScanTargetFunc)
 				//释放
 				<-end
 
@@ -323,19 +316,23 @@ func (bs *EOSBlockScanner) extractRuntime(producer chan ExtractResult, worker ch
 }
 
 // ExtractTransaction 提取交易单
-func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash string, blockTime int64, transaction *eos.TransactionReceipt, scanAddressFunc openwallet.BlockScanAddressFunc) ExtractResult {
+func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash string, blockTime int64, transaction *eos.TransactionReceipt, scanTargetFunc openwallet.BlockScanTargetFunc) ExtractResult {
 	var (
 		success = true
 		result  = ExtractResult{
 			BlockHash:   blockHash,
 			BlockHeight: blockHeight,
 			TxID:        transaction.Transaction.ID.String(),
-			extractData: make(map[string]*openwallet.TxExtractData),
+			extractData: make(map[string][]*openwallet.TxExtractData),
 			BlockTime:   blockTime,
 		}
 	)
 
 	//提出交易单明细
+	if transaction.Transaction.Packed == nil {
+		bs.wm.Log.Std.Debug("trx packed empty: %s", transaction.Transaction.ID)
+		return ExtractResult{Success: true}
+	}
 	signedTransaction, _ := transaction.Transaction.Packed.Unpack()
 
 	for _, action := range signedTransaction.Actions {
@@ -358,26 +355,25 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 				bs.wm.Log.Std.Error("parse data error: %s", _err)
 				success = false
 			} else {
-				var (
-					ok1 = false
-					ok2 = false
-				)
-				if scanAddressFunc == nil {
-					ok1 = true
-					ok2 = true
+				if scanTargetFunc == nil {
+					bs.wm.Log.Std.Error("scanTargetFunc is not configurated")
+					return ExtractResult{Success: false}
+				}
+
+				//订阅地址为交易单中的发送者
+				accountID1, ok1 := scanTargetFunc(openwallet.ScanTarget{Alias: data.From, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
+				//订阅地址为交易单中的接收者
+				accountID2, ok2 := scanTargetFunc(openwallet.ScanTarget{Alias: data.To, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
+				if accountID1 == accountID2 && len(accountID1) > 0 && len(accountID2) > 0 {
+					bs.InitExtractResult(accountID1, TransferAction{action, data}, &result, 0)
 				} else {
-					//订阅地址为交易单中的发送者
-					_, ok1 = scanAddressFunc(data.From)
-					//订阅地址为交易单中的接收者
-					_, ok2 = scanAddressFunc(data.To)
-				}
+					if ok1 {
+						bs.InitExtractResult(accountID1, TransferAction{action, data}, &result, 1)
+					}
 
-				if ok1 {
-					bs.InitExtractResult(TransferAction{action, data}, &result, 1)
-				}
-
-				if ok2 {
-					bs.InitExtractResult(TransferAction{action, data}, &result, 2)
+					if ok2 {
+						bs.InitExtractResult(accountID2, TransferAction{action, data}, &result, 2)
+					}
 				}
 			}
 		}
@@ -387,22 +383,15 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 
 }
 
-//InitExtractResult optType = 1: 输入提取，2：输出提取
-func (bs *EOSBlockScanner) InitExtractResult(action TransferAction, result *ExtractResult, optType int64) {
+//InitExtractResult optType = 0: 输入输出提取，1: 输入提取，2：输出提取
+func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAction, result *ExtractResult, optType int64) {
 
 	data := action.TransferData
 
-	// var sourceKey string
-	// if optType == 1 {
-	// 	sourceKey = data.From
-	// } else if optType == 2 {
-	// 	sourceKey = data.To
-	// }
-
-	// txExtractDataArray := result.extractData[sourceKey]
-	// if txExtractDataArray == nil {
-	// 	txExtractDataArray = make([]*openwallet.TxExtractData, 0)
-	// }
+	txExtractDataArray := result.extractData[sourceKey]
+	if txExtractDataArray == nil {
+		txExtractDataArray = make([]*openwallet.TxExtractData, 0)
+	}
 
 	txExtractData := &openwallet.TxExtractData{}
 
@@ -419,9 +408,10 @@ func (bs *EOSBlockScanner) InitExtractResult(action TransferAction, result *Extr
 	}
 	coin.ContractID = string(action.Account)
 	coin.Contract = openwallet.SmartContract{
+		Symbol:     bs.wm.Symbol(),
 		ContractID: string(action.Account),
 		Address:    string(action.Account),
-		Symbol:     symbol,
+		Token:      symbol,
 	}
 
 	transx := &openwallet.Transaction{
@@ -445,14 +435,17 @@ func (bs *EOSBlockScanner) InitExtractResult(action TransferAction, result *Extr
 	transx.WxID = wxID
 
 	txExtractData.Transaction = transx
-	if optType == 1 {
+	if optType == 0 {
+		bs.extractTxInput(action, txExtractData)
+		bs.extractTxOutput(action, txExtractData)
+	} else if optType == 1 {
 		bs.extractTxInput(action, txExtractData)
 	} else if optType == 2 {
 		bs.extractTxOutput(action, txExtractData)
 	}
 
-	// txExtractDataArray = append(txExtractDataArray, txExtractData)
-	// result.extractData[sourceKey] = txExtractDataArray
+	txExtractDataArray = append(txExtractDataArray, txExtractData)
+	result.extractData[sourceKey] = txExtractDataArray
 }
 
 //extractTxInput 提取交易单输入部分,无需手续费，所以只包含1个TxInput
@@ -504,22 +497,117 @@ func (bs *EOSBlockScanner) extractTxOutput(action TransferAction, txExtractData 
 }
 
 //newExtractDataNotify 发送通知
-func (bs *EOSBlockScanner) newExtractDataNotify(height uint64, extractData map[string]*openwallet.TxExtractData) error {
+func (bs *EOSBlockScanner) newExtractDataNotify(height uint64, extractData map[string][]*openwallet.TxExtractData) error {
 	for o := range bs.Observers {
-		for key, data := range extractData {
-			err := o.BlockExtractDataNotify(key, data)
-			if err != nil {
-				log.Error("BlockExtractDataNotify unexpected error:", err)
-				//记录未扫区块
-				unscanRecord := NewUnscanRecord(height, "", "ExtractData Notify failed.")
-				err = bs.SaveUnscanRecord(unscanRecord)
+		for key, array := range extractData {
+			for _, item := range array {
+				err := o.BlockExtractDataNotify(key, item)
 				if err != nil {
-					log.Std.Error("block height: %d, save unscan record failed. unexpected error: %v", height, err.Error())
-				}
+					log.Error("BlockExtractDataNotify unexpected error:", err)
+					//记录未扫区块
+					unscanRecord := NewUnscanRecord(height, "", "ExtractData Notify failed.")
+					err = bs.SaveUnscanRecord(unscanRecord)
+					if err != nil {
+						log.Std.Error("block height: %d, save unscan record failed. unexpected error: %v", height, err.Error())
+					}
 
+				}
 			}
+
 		}
 	}
 
 	return nil
+}
+
+//ScanBlock 扫描指定高度区块
+func (bs *EOSBlockScanner) ScanBlock(height uint64) error {
+
+	block, err := bs.wm.Api.GetBlockByNum(uint32(height))
+	if err != nil {
+		bs.wm.Log.Std.Info("block scanner can not get new block data; unexpected error: %v", err)
+
+		//记录未扫区块
+		unscanRecord := NewUnscanRecord(height, "", err.Error())
+		bs.SaveUnscanRecord(unscanRecord)
+		bs.wm.Log.Std.Info("block height: %d extract failed.", height)
+		return err
+	}
+
+	bs.scanBlock(block)
+
+	return nil
+}
+
+func (bs *EOSBlockScanner) scanBlock(block *eos.BlockResp) error {
+
+	bs.wm.Log.Std.Info("block scanner scanning height: %d ...", block.ID.String())
+
+	err := bs.BatchExtractTransactions(uint64(block.BlockNum), block.ID.String(), block.Timestamp.Unix(), block.Transactions)
+	if err != nil {
+		bs.wm.Log.Std.Info("block scanner can not extractRechargeRecords; unexpected error: %v", err)
+	}
+
+	//通知新区块给观测者，异步处理
+	bs.newBlockNotify(block)
+
+	return nil
+}
+
+//SetRescanBlockHeight 重置区块链扫描高度
+func (bs *EOSBlockScanner) SetRescanBlockHeight(height uint64) error {
+	if height <= 0 {
+		return errors.New("block height to rescan must greater than 0. ")
+	}
+
+	block, err := bs.wm.Api.GetBlockByNum(uint32(height - 1))
+	if err != nil {
+		return err
+	}
+
+	bs.SaveLocalBlockHead(uint32(height-1), block.ID.String())
+
+	return nil
+}
+
+// GetGlobalMaxBlockHeight GetGlobalMaxBlockHeight
+func (bs *EOSBlockScanner) GetGlobalMaxBlockHeight() uint64 {
+	headBlock, err := bs.GetGlobalHeadBlock()
+	if err != nil {
+		bs.wm.Log.Std.Info("get global head block error;unexpected error:%v", err)
+		return 0
+	}
+	return uint64(headBlock.BlockNum)
+}
+
+//GetGlobalHeadBlock GetGlobalHeadBlock
+func (bs *EOSBlockScanner) GetGlobalHeadBlock() (block *eos.BlockResp, err error) {
+	infoResp, err := bs.GetChainInfo()
+	if err != nil {
+		bs.wm.Log.Std.Info("get chain info error;unexpected error:%v", err)
+		return
+	}
+
+	block, err = bs.wm.Api.GetBlockByNum(infoResp.HeadBlockNum - 1)
+	if err != nil {
+		bs.wm.Log.Std.Info("block scanner can not get block by height; unexpected error:%v", err)
+		return
+	}
+
+	return
+}
+
+//GetChainInfo GetChainInfo
+func (bs *EOSBlockScanner) GetChainInfo() (infoResp *eos.InfoResp, err error) {
+	infoResp, err = bs.wm.Api.GetInfo()
+	if err != nil {
+		bs.wm.Log.Std.Info("block scanner can not get info; unexpected error:%v", err)
+	}
+	return
+}
+
+//GetScannedBlockHeight 获取已扫区块高度
+func (bs *EOSBlockScanner) GetScannedBlockHeight() uint64 {
+	height, _, _ := bs.GetLocalBlockHead()
+	return uint64(height)
 }
