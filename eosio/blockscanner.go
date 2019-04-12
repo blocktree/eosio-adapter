@@ -361,16 +361,19 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 				}
 
 				//订阅地址为交易单中的发送者
-				sourceKeyFrom, ok1 := scanTargetFunc(openwallet.ScanTarget{Alias: data.From, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
+				accountID1, ok1 := scanTargetFunc(openwallet.ScanTarget{Alias: data.From, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
 				//订阅地址为交易单中的接收者
-				sourceKeyTo, ok2 := scanTargetFunc(openwallet.ScanTarget{Alias: data.To, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
+				accountID2, ok2 := scanTargetFunc(openwallet.ScanTarget{Alias: data.To, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
+				if accountID1 == accountID2 && len(accountID1) > 0 && len(accountID2) > 0 {
+					bs.InitExtractResult(accountID1, TransferAction{action, data}, &result, 0)
+				} else {
+					if ok1 {
+						bs.InitExtractResult(accountID1, TransferAction{action, data}, &result, 1)
+					}
 
-				if ok1 {
-					bs.InitExtractResult(sourceKeyFrom, TransferAction{action, data}, &result, 1)
-				}
-
-				if ok2 {
-					bs.InitExtractResult(sourceKeyTo, TransferAction{action, data}, &result, 2)
+					if ok2 {
+						bs.InitExtractResult(accountID2, TransferAction{action, data}, &result, 2)
+					}
 				}
 			}
 		}
@@ -380,7 +383,7 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 
 }
 
-//InitExtractResult optType = 1: 输入提取，2：输出提取
+//InitExtractResult optType = 0: 输入输出提取，1: 输入提取，2：输出提取
 func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAction, result *ExtractResult, optType int64) {
 
 	data := action.TransferData
@@ -432,7 +435,10 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 	transx.WxID = wxID
 
 	txExtractData.Transaction = transx
-	if optType == 1 {
+	if optType == 0 {
+		bs.extractTxInput(action, txExtractData)
+		bs.extractTxOutput(action, txExtractData)
+	} else if optType == 1 {
 		bs.extractTxInput(action, txExtractData)
 	} else if optType == 2 {
 		bs.extractTxOutput(action, txExtractData)
