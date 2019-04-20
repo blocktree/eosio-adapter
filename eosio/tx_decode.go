@@ -18,11 +18,12 @@ package eosio
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/eoscanada/eos-go/ecc"
-	"github.com/eoscanada/eos-go/token"
 	"time"
 
-	"github.com/blocktree/go-owcdrivers/eosSignature"
+	"github.com/eoscanada/eos-go/ecc"
+	"github.com/eoscanada/eos-go/token"
+
+	"github.com/blocktree/go-owcrypt"
 	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openwallet"
 	"github.com/eoscanada/eos-go"
@@ -192,8 +193,8 @@ func (decoder *TransactionDecoder) SignRawTransaction(wrapper openwallet.WalletD
 
 			decoder.wm.Log.Debug("hash:", hash)
 
-			sig, err := eosSignature.SignCanonical(keyBytes, hash)
-			if err != nil {
+			sig, ret := owcrypt.Signature(keyBytes, nil, 0, hash, uint16(len(hash)), keySignature.EccType)
+			if ret != owcrypt.SUCCESS {
 				return fmt.Errorf("sign transaction hash failed, unexpected err: %v", err)
 			}
 
@@ -233,15 +234,20 @@ func (decoder *TransactionDecoder) VerifyRawTransaction(wrapper openwallet.Walle
 		decoder.wm.Log.Debug("accountID Signatures:", accountID)
 		for _, keySignature := range keySignatures {
 
+			messsage, _ := hex.DecodeString(keySignature.Message)
 			signature, _ := hex.DecodeString(keySignature.Signature)
+			publicKey, _ := hex.DecodeString(keySignature.Address.PublicKey)
+
+			//验证签名
+			ret := owcrypt.Verify(publicKey, nil, 0, messsage, uint16(len(messsage)), signature, keySignature.EccType)
+			if ret != owcrypt.SUCCESS {
+				return fmt.Errorf("transaction verify failed")
+			}
 
 			stx.Signatures = append(
 				stx.Signatures,
 				ecc.Signature{Curve: ecc.CurveK1, Content: signature},
 			)
-
-			decoder.wm.Log.Debug("Signature:", keySignature.Signature)
-			decoder.wm.Log.Debug("PublicKey:", keySignature.Address.PublicKey)
 		}
 	}
 
