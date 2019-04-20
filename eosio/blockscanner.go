@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/blocktree/openwallet/log"
@@ -365,11 +364,6 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 				return ExtractResult{Success: false}
 			}
 
-			if len(data.Quantity) == 0 {
-				bs.wm.Log.Std.Warning("transfer quantity is empty: %s", transaction.Transaction.ID)
-				return ExtractResult{Success: true}
-			}
-
 			//订阅地址为交易单中的发送者
 			accountID1, ok1 := scanTargetFunc(openwallet.ScanTarget{Alias: data.From, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
 			//订阅地址为交易单中的接收者
@@ -408,9 +402,9 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 	status := "1"
 	reason := ""
 
-	qs := strings.Split(data.Quantity, " ")
-	amount := qs[0]
-	symbol := qs[1]
+	amount := string(data.Quantity.Amount)
+	symbol := data.Quantity.Symbol.Symbol
+	decimal := int32(data.Quantity.Symbol.Precision)
 
 	coin := openwallet.Coin{
 		Symbol:     symbol,
@@ -430,11 +424,11 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 		BlockHash:   result.BlockHash,
 		BlockHeight: result.BlockHeight,
 		TxID:        result.TxID,
-		Decimal:     bs.wm.Decimal(), // TBD
+		Decimal:     decimal,
 		Amount:      amount,
 		ConfirmTime: result.BlockTime,
-		From:        []string{data.From + ":" + data.Quantity},
-		To:          []string{data.To + ":" + data.Quantity},
+		From:        []string{data.From + ":" + data.Quantity.String()},
+		To:          []string{data.To + ":" + data.Quantity.String()},
 		IsMemo:      true,
 		Memo:        data.Memo,
 		Status:      status,
