@@ -30,6 +30,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// TransactionDecoder 交易单解析器
 type TransactionDecoder struct {
 	openwallet.TransactionDecoderBase
 	wm *WalletManager //钱包管理者
@@ -262,7 +263,7 @@ func (decoder *TransactionDecoder) VerifyRawTransaction(wrapper openwallet.Walle
 	return nil
 }
 
-//SendRawTransaction 广播交易单
+// SubmitRawTransaction 广播交易单
 func (decoder *TransactionDecoder) SubmitRawTransaction(wrapper openwallet.WalletDAI, rawTx *openwallet.RawTransaction) (*openwallet.Transaction, error) {
 
 	var stx eos.SignedTransaction
