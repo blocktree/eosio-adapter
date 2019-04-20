@@ -251,13 +251,6 @@ func (decoder *TransactionDecoder) VerifyRawTransaction(wrapper openwallet.Walle
 		}
 	}
 
-	//packed, err := stx.Pack(eos.CompressionNone)
-	//if err != nil {
-	//	return err
-	//}
-
-	//TODO:验证签名是否通过
-
 	bin, err := eos.MarshalBinary(stx)
 	if err != nil {
 		return fmt.Errorf("signed transaction encode failed, unexpected error: %v", err)
