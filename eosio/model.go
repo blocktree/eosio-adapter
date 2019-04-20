@@ -77,10 +77,10 @@ type TransferAction struct {
 
 // TransferData token contract transfer action data
 type TransferData struct {
-	From     string `json:"from,omitempty"`
-	To       string `json:"to,omitempty"`
-	Quantity string `json:"quantity,omitempty"`
-	Memo     string `json:"memo,omitempty"`
+	From     string    `json:"from,omitempty"`
+	To       string    `json:"to,omitempty"`
+	Quantity eos.Asset `json:"quantity,omitempty"`
+	Memo     string    `json:"memo,omitempty"`
 }
 
 // ParseHeader 区块链头
