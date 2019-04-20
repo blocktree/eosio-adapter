@@ -347,8 +347,7 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 			abi, err := bs.wm.Api.GetABI(action.Account) // TODO 缓存ABI
 			if err != nil {
 				bs.wm.Log.Std.Error("get ABI: %s", err)
-				success = false
-				continue
+				return ExtractResult{Success: false}
 			}
 			// use abi to get data bytes
 			bytes, _ := abi.ABI.DecodeAction(action.HexData, action.Name)
@@ -358,29 +357,30 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 			_err := json.Unmarshal(bytes, &data)
 			if _err != nil {
 				bs.wm.Log.Std.Error("parse data error: %s", _err)
-				success = false
+				return ExtractResult{Success: false}
+			}
+
+			if scanTargetFunc == nil {
+				bs.wm.Log.Std.Error("scanTargetFunc is not configurated")
+				return ExtractResult{Success: false}
+			}
+
+			//订阅地址为交易单中的发送者
+			accountID1, ok1 := scanTargetFunc(openwallet.ScanTarget{Alias: data.From, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
+			//订阅地址为交易单中的接收者
+			accountID2, ok2 := scanTargetFunc(openwallet.ScanTarget{Alias: data.To, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
+			if accountID1 == accountID2 && len(accountID1) > 0 && len(accountID2) > 0 {
+				bs.InitExtractResult(accountID1, TransferAction{action, data}, &result, 0)
 			} else {
-				if scanTargetFunc == nil {
-					bs.wm.Log.Std.Error("scanTargetFunc is not configurated")
-					return ExtractResult{Success: false}
+				if ok1 {
+					bs.InitExtractResult(accountID1, TransferAction{action, data}, &result, 1)
 				}
 
-				//订阅地址为交易单中的发送者
-				accountID1, ok1 := scanTargetFunc(openwallet.ScanTarget{Alias: data.From, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
-				//订阅地址为交易单中的接收者
-				accountID2, ok2 := scanTargetFunc(openwallet.ScanTarget{Alias: data.To, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
-				if accountID1 == accountID2 && len(accountID1) > 0 && len(accountID2) > 0 {
-					bs.InitExtractResult(accountID1, TransferAction{action, data}, &result, 0)
-				} else {
-					if ok1 {
-						bs.InitExtractResult(accountID1, TransferAction{action, data}, &result, 1)
-					}
-
-					if ok2 {
-						bs.InitExtractResult(accountID2, TransferAction{action, data}, &result, 2)
-					}
+				if ok2 {
+					bs.InitExtractResult(accountID2, TransferAction{action, data}, &result, 2)
 				}
 			}
+
 		}
 	}
 	result.Success = success
