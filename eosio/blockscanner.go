@@ -365,6 +365,11 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 				return ExtractResult{Success: false}
 			}
 
+			if len(data.Quantity) == 0 {
+				bs.wm.Log.Std.Warning("transfer quantity is empty: %s", transaction.Transaction.ID)
+				return ExtractResult{Success: true}
+			}
+
 			//订阅地址为交易单中的发送者
 			accountID1, ok1 := scanTargetFunc(openwallet.ScanTarget{Alias: data.From, Symbol: bs.wm.Symbol(), BalanceModelType: openwallet.BalanceModelTypeAccount})
 			//订阅地址为交易单中的接收者
