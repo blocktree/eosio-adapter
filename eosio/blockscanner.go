@@ -349,7 +349,11 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 				return ExtractResult{Success: false}
 			}
 			// use abi to get data bytes
-			abi := abiInfo.ABI.(eos.ABI)
+			abi, ok := abiInfo.ABI.(*eos.ABI)
+			if !ok {
+				bs.wm.Log.Std.Error("convert abi error")
+				return ExtractResult{Success: false}
+			}
 			bytes, _ := abi.DecodeAction(action.HexData, action.Name)
 
 			var data TransferData

@@ -79,10 +79,10 @@ func (decoder *ContractDecoder) GetABIInfo(address string) (*openwallet.ABIInfo,
 		if err != nil {
 			return nil, fmt.Errorf("get abi from rpc error: %s", err)
 		}
-		result.ABI = abiResp.ABI
+		result.ABI = &abiResp.ABI
 
 		if cache != nil {
-			cache.Add(keyName, abiResp.ABI, 0)
+			cache.Add(keyName, &abiResp.ABI, 0)
 		}
 	}
 
