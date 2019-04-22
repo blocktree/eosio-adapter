@@ -16,7 +16,10 @@
 package eosio
 
 import (
+	"fmt"
+
 	"github.com/blocktree/openwallet/openwallet"
+	eos "github.com/eoscanada/eos-go"
 )
 
 type ContractDecoder struct {
@@ -51,3 +54,39 @@ func NewContractDecoder(wm *WalletManager) *ContractDecoder {
 //	accountBalance = accountAssets[0]
 //
 //}
+
+// GetABIInfo get abi
+func (decoder *ContractDecoder) GetABIInfo(address string) (*openwallet.ABIInfo, error) {
+
+	result := &openwallet.ABIInfo{}
+	result.Address = address
+
+	keyName := "ABI_" + address
+
+	cache := decoder.wm.CacheManager
+	if cache != nil {
+		value, success := cache.Get(keyName)
+		if success {
+			result.ABI = value
+		}
+	}
+
+	if result == nil {
+		abiResp, err := decoder.wm.Api.GetABI(eos.AccountName(address))
+		if err == nil {
+			return nil, fmt.Errorf("get abi from rpc error: %s", err)
+		}
+		result.ABI = abiResp.ABI
+
+		if cache != nil {
+			cache.Add(keyName, abiResp.ABI, 0)
+		}
+	}
+
+	return result, nil
+}
+
+// SetABIInfo set abi
+func (decoder *ContractDecoder) SetABIInfo(address string, abi openwallet.ABIInfo) error {
+	return fmt.Errorf("GetABIInfo not implement")
+}

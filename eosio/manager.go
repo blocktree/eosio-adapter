@@ -31,9 +31,10 @@ type WalletManager struct {
 	Log             *log.OWLogger                   //日志工具
 	ContractDecoder openwallet.SmartContractDecoder //智能合约解析器
 	Blockscanner    *EOSBlockScanner                //区块扫描器
+	CacheManager    openwallet.ICacheManager        //缓存管理器
 }
 
-func NewWalletManager() *WalletManager {
+func NewWalletManager(cacheManager openwallet.ICacheManager) *WalletManager {
 	wm := WalletManager{}
 	wm.Config = NewConfig(Symbol)
 	wm.Blockscanner = NewEOSBlockScanner(&wm)
@@ -41,5 +42,6 @@ func NewWalletManager() *WalletManager {
 	wm.TxDecoder = NewTransactionDecoder(&wm)
 	wm.Log = log.NewOWLogger(wm.Symbol())
 	wm.ContractDecoder = NewContractDecoder(&wm)
+	wm.CacheManager = cacheManager
 	return &wm
 }
