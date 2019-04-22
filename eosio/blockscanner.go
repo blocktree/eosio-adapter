@@ -343,7 +343,7 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 
 		if action.Name == "transfer" {
 
-			abiInfo, err := bs.wm.ContractDecoder.GetABIInfo(string(action.Name))
+			abiInfo, err := bs.wm.ContractDecoder.GetABIInfo(string(action.Account))
 			if err != nil {
 				bs.wm.Log.Std.Error("get ABI: %s", err)
 				return ExtractResult{Success: false}
