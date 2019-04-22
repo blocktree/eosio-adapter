@@ -14,10 +14,6 @@ var (
 	configFilePath = filepath.Join("conf")
 )
 
-type CacheManager struct {
-	// ...
-	// impl
-}
 
 func testInitWalletManager() *openw.WalletManager {
 	log.SetLogFuncCall(true)
@@ -29,9 +25,7 @@ func testInitWalletManager() *openw.WalletManager {
 		"EOS",
 	}
 
-	cacheManager := CacheManager{}
-
-	return openw.NewWalletManager(cacheManager)
+	return openw.NewWalletManager(tc)
 	//tm.Init()
 }
 
