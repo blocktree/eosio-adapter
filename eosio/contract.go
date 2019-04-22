@@ -63,17 +63,20 @@ func (decoder *ContractDecoder) GetABIInfo(address string) (*openwallet.ABIInfo,
 
 	keyName := "ABI_" + address
 
+	isCache := false
+
 	cache := decoder.wm.CacheManager
 	if cache != nil {
 		value, success := cache.Get(keyName)
 		if success {
 			result.ABI = value
+			isCache = true
 		}
 	}
 
-	if result == nil {
+	if !isCache {
 		abiResp, err := decoder.wm.Api.GetABI(eos.AccountName(address))
-		if err == nil {
+		if err != nil {
 			return nil, fmt.Errorf("get abi from rpc error: %s", err)
 		}
 		result.ABI = abiResp.ABI
