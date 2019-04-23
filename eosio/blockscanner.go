@@ -343,13 +343,18 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 
 		if action.Name == "transfer" {
 
-			abi, err := bs.wm.Api.GetABI(action.Account) // TODO 缓存ABI
+			abiInfo, err := bs.wm.ContractDecoder.GetABIInfo(string(action.Account))
 			if err != nil {
 				bs.wm.Log.Std.Error("get ABI: %s", err)
 				return ExtractResult{Success: false}
 			}
 			// use abi to get data bytes
-			bytes, _ := abi.ABI.DecodeAction(action.HexData, action.Name)
+			abi, ok := abiInfo.ABI.(*eos.ABI)
+			if !ok {
+				bs.wm.Log.Std.Error("convert abi error")
+				return ExtractResult{Success: false}
+			}
+			bytes, _ := abi.DecodeAction(action.HexData, action.Name)
 
 			var data TransferData
 

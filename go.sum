@@ -20,8 +20,14 @@ github.com/blocktree/go-owcdrivers v1.0.1 h1:nvHPeKtfKazyQxRQH2U9WxWEyvHCj9JEt3V
 github.com/blocktree/go-owcdrivers v1.0.1/go.mod h1:AzbIxzzRcSszV/XwOiu83QqKuGTuWyCdCrVfGNt2bk8=
 github.com/blocktree/go-owcrypt v1.0.0 h1:u3B59ZjmZ6vB8NrIicUvKKiiDY2oeJCInWsEq1swwSY=
 github.com/blocktree/go-owcrypt v1.0.0/go.mod h1:5FCinL/4XVEqbmAFTOUgfMJVNJEw6WzVy624qsxzZC8=
-github.com/blocktree/openwallet v1.3.0 h1:ccbpAs+Mx7RdOi107w/sKyD67kBh8SqxIumYK/rEtx8=
-github.com/blocktree/openwallet v1.3.0/go.mod h1:wVvKtOBgi2MIviiGyeX2uedTo53X7HjtMzfps5G3BWg=
+github.com/blocktree/openwallet v1.4.1-0.20190422082349-477523da7ddc h1:nwl+Qr0qgOx4mByFgObMFNENehpVfN/jA3IhrzfdoTo=
+github.com/blocktree/openwallet v1.4.1-0.20190422082349-477523da7ddc/go.mod h1:wVvKtOBgi2MIviiGyeX2uedTo53X7HjtMzfps5G3BWg=
+github.com/blocktree/openwallet v1.4.1-0.20190422085558-02e948615e74 h1:aV9I9cfJ+SZWb4Q+mSBbg55yjH8BVLv81+RjnQ0hQis=
+github.com/blocktree/openwallet v1.4.1-0.20190422085558-02e948615e74/go.mod h1:wVvKtOBgi2MIviiGyeX2uedTo53X7HjtMzfps5G3BWg=
+github.com/blocktree/openwallet v1.4.1-0.20190422092135-9cb6ea046cf2 h1:SP2OkQPIZcAHDSzEht1xu7L7X8NZZGVS+C1wF0DRAio=
+github.com/blocktree/openwallet v1.4.1-0.20190422092135-9cb6ea046cf2/go.mod h1:wVvKtOBgi2MIviiGyeX2uedTo53X7HjtMzfps5G3BWg=
+github.com/blocktree/openwallet v1.4.1-0.20190422093044-aaf44842b93a h1:6u+yOOiLznPQoU8wYr4FnqcqB5bNJNoO5y0Cq9c1JGI=
+github.com/blocktree/openwallet v1.4.1-0.20190422093044-aaf44842b93a/go.mod h1:wVvKtOBgi2MIviiGyeX2uedTo53X7HjtMzfps5G3BWg=
 github.com/bndr/gotabulate v1.1.2/go.mod h1:0+8yUgaPTtLRTjf49E8oju7ojpU11YmXyvq1LbPAb3U=
 github.com/bradfitz/gomemcache v0.0.0-20180710155616-bc664df96737/go.mod h1:PmM6Mmwb0LSuEubjR8N7PtNe1KxZLtOUHtbeikc5h60=
 github.com/bradfitz/gomemcache v0.0.0-20190329173943-551aad21a668/go.mod h1:H0wQNHz2YrLsuXOZozoeDmnHXkNCRmMW0gwFWDfEZDA=
@@ -56,6 +62,7 @@ github.com/edsrzf/mmap-go v0.0.0-20170320065105-0bce6a688712/go.mod h1:YO35OhQPt
 github.com/elazarl/go-bindata-assetfs v1.0.0/go.mod h1:v+YaWX3bdea5J/mo8dSETolEo7R71Vk1u8bnjau5yw4=
 github.com/eoscanada/eos-go v0.8.10 h1:QUwHRBHEFag/qyW4PR2S9++0se0V4LjPLk1/KsNtXlo=
 github.com/eoscanada/eos-go v0.8.10/go.mod h1:RKrm2XzZEZWxSMTRqH5QOyJ1fb/qKEjs2ix1aQl0sk4=
+github.com/ethereum/go-ethereum v1.8.24 h1:3BjG/gq+YajlOo8DAB1AaFdcY078YpOejacpfOnUvuY=
 github.com/ethereum/go-ethereum v1.8.24/go.mod h1:PwpWDrCLZrV+tfrhqqF6kPknbISMHaJv9Ln3kPCZLwY=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/go-redis/redis v6.14.2+incompatible/go.mod h1:NAIEuMOZ/fxfXJIrKDQDz8wamY7mA7PouImQ2Jvg6kA=
