@@ -17,6 +17,8 @@ package eosio
 
 import (
 	"github.com/blocktree/openwallet/openwallet"
+	"github.com/eoscanada/eos-go"
+	"github.com/shopspring/decimal"
 )
 
 type ContractDecoder struct {
@@ -31,23 +33,41 @@ func NewContractDecoder(wm *WalletManager) *ContractDecoder {
 	return &decoder
 }
 
-//func (decoder *ContractDecoder) GetTokenBalanceByAddress(contract openwallet.SmartContract, address ...string) ([]*openwallet.TokenBalance, error) {
-//
-//	codeAccount := contract.Address
-//	tokenCoin := contract.Token
-//	//tokenDecimals := rawTx.Coin.Contract.Decimals
-//
-//	//获取wallet
-//	account, err := wrapper.GetAssetsAccountInfo(accountID)
-//	if err != nil {
-//		return err
-//	}
-//
-//	accountAssets, err := decoder.wm.Api.GetCurrencyBalance(eos.AccountName(account.Alias), tokenCoin, eos.AccountName(codeAccount))
-//	if len(accountAssets) == 0 {
-//		return fmt.Errorf("eos account balance is not enough")
-//	}
-//
-//	accountBalance = accountAssets[0]
-//
-//}
+func (decoder *ContractDecoder) GetTokenBalanceByAddress(contract openwallet.SmartContract, address ...string) ([]*openwallet.TokenBalance, error) {
+
+	tokenBalanceList := make([]*openwallet.TokenBalance, 0)
+
+	codeAccount := contract.Address
+	tokenCoin := contract.Token
+
+	for _, addr := range address {
+
+		accountAssets, err := decoder.wm.Api.GetCurrencyBalance(eos.AccountName(addr), tokenCoin, eos.AccountName(codeAccount))
+		if err != nil {
+			decoder.wm.Log.Errorf("get account[%v] token balance failed, err: %v", addr, err)
+		}
+
+		if len(accountAssets) == 0 {
+			continue
+		}
+
+		assets := accountAssets[0]
+		accountBalanceDec := decimal.New(int64(assets.Amount), -int32(assets.Precision))
+
+		tokenBalance := &openwallet.TokenBalance{
+			Contract: &contract,
+			Balance: &openwallet.Balance{
+				Address:          addr,
+				Symbol:           contract.Symbol,
+				Balance:          accountBalanceDec.String(),
+				ConfirmBalance:   accountBalanceDec.String(),
+				UnconfirmBalance: "0",
+			},
+		}
+
+		tokenBalanceList = append(tokenBalanceList, tokenBalance)
+	}
+
+	return tokenBalanceList, nil
+
+}

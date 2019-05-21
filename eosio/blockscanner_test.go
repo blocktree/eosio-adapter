@@ -16,10 +16,9 @@
 package eosio
 
 import (
-	"fmt"
 	"testing"
 
-	eos "github.com/eoscanada/eos-go"
+	"github.com/eoscanada/eos-go"
 )
 
 //TestScanBlockTask
@@ -32,18 +31,18 @@ func TestScanBlockTask(t *testing.T) {
 }
 
 func TestEOSBlockScanner_ExtractTransaction(t *testing.T) {
-	wm := NewWalletManager()
-	wm.Config.ServerAPI = "https://node1.zbeos.com"
-	wm.Api = eos.New(wm.Config.ServerAPI)
-	wm.Blockscanner.Scanning = true
-
-	bs := wm.Blockscanner
-
-	blockHash := "031953833047e5085fdafc674077e019caa31c5e9dd6b50fbce224fee56d9084"
-	blockResp, _ := wm.Api.GetBlockByID(blockHash)
-	fmt.Println(blockResp.Transactions[7])
-
-	result := bs.ExtractTransaction(uint64(blockResp.BlockNum), blockHash, blockResp.Timestamp.Unix(), &blockResp.Transactions[7], bs.ScanAddressFunc)
-
-	fmt.Println(result)
+	//wm := NewWalletManager()
+	//wm.Config.ServerAPI = "https://node1.zbeos.com"
+	//wm.Api = eos.New(wm.Config.ServerAPI)
+	//wm.Blockscanner.Scanning = true
+	//
+	//bs := wm.Blockscanner
+	//
+	//blockHash := "031953833047e5085fdafc674077e019caa31c5e9dd6b50fbce224fee56d9084"
+	//blockResp, _ := wm.Api.GetBlockByID(blockHash)
+	//fmt.Println(blockResp.Transactions[7])
+	//
+	//result := bs.ExtractTransaction(uint64(blockResp.BlockNum), blockHash, blockResp.Timestamp.Unix(), &blockResp.Transactions[7], bs.ScanAddressFunc)
+	//
+	//fmt.Println(result)
 }

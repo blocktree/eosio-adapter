@@ -24,7 +24,7 @@ import (
 
 	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openwallet"
-	eos "github.com/eoscanada/eos-go"
+	"github.com/eoscanada/eos-go"
 )
 
 const (
@@ -402,14 +402,16 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 	amount := qs[0]
 	symbol := qs[1]
 
+	contractID := openwallet.GenContractID(bs.wm.Symbol(), string(action.Account))
 	coin := openwallet.Coin{
 		Symbol:     symbol,
 		IsContract: true,
+		ContractID: contractID,
 	}
-	coin.ContractID = string(action.Account)
+
 	coin.Contract = openwallet.SmartContract{
 		Symbol:     bs.wm.Symbol(),
-		ContractID: string(action.Account),
+		ContractID: contractID,
 		Address:    string(action.Account),
 		Token:      symbol,
 	}
@@ -426,10 +428,11 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 		From:        []string{data.From + ":" + data.Quantity},
 		To:          []string{data.To + ":" + data.Quantity},
 		IsMemo:      true,
-		Memo:        data.Memo,
 		Status:      status,
 		Reason:      reason,
 	}
+
+	transx.SetExtParam("memo", data.Memo)
 
 	wxID := openwallet.GenTransactionWxID(transx)
 	transx.WxID = wxID
@@ -457,14 +460,14 @@ func (bs *EOSBlockScanner) extractTxInput(action TransferAction, txExtractData *
 
 	//主网from交易转账信息，第一个TxInput
 	txInput := &openwallet.TxInput{}
-	txInput.Recharge.Sid = openwallet.GenTxInputSID(tx.TxID, bs.wm.Symbol(), "", uint64(0))
+	txInput.Recharge.Sid = openwallet.GenTxInputSID(tx.TxID, bs.wm.Symbol(), coin.ContractID, uint64(0))
 	txInput.Recharge.TxID = tx.TxID
 	txInput.Recharge.Address = data.From
 	txInput.Recharge.Coin = coin
 	txInput.Recharge.Amount = tx.Amount
 	txInput.Recharge.Symbol = coin.Symbol
-	txInput.Recharge.IsMemo = true
-	txInput.Recharge.Memo = data.Memo
+	//txInput.Recharge.IsMemo = true
+	//txInput.Recharge.Memo = data.Memo
 	txInput.Recharge.BlockHash = tx.BlockHash
 	txInput.Recharge.BlockHeight = tx.BlockHeight
 	txInput.Recharge.Index = 0 //账户模型填0
@@ -481,14 +484,14 @@ func (bs *EOSBlockScanner) extractTxOutput(action TransferAction, txExtractData 
 
 	//主网to交易转账信息,只有一个TxOutPut
 	txOutput := &openwallet.TxOutPut{}
-	txOutput.Recharge.Sid = openwallet.GenTxOutPutSID(tx.TxID, bs.wm.Symbol(), "", uint64(0))
+	txOutput.Recharge.Sid = openwallet.GenTxOutPutSID(tx.TxID, bs.wm.Symbol(), coin.ContractID, uint64(0))
 	txOutput.Recharge.TxID = tx.TxID
 	txOutput.Recharge.Address = data.To
 	txOutput.Recharge.Coin = coin
 	txOutput.Recharge.Amount = tx.Amount
 	txOutput.Recharge.Symbol = coin.Symbol
-	txOutput.Recharge.IsMemo = true
-	txOutput.Recharge.Memo = data.Memo
+	//txOutput.Recharge.IsMemo = true
+	//txOutput.Recharge.Memo = data.Memo
 	txOutput.Recharge.BlockHash = tx.BlockHash
 	txOutput.Recharge.BlockHeight = tx.BlockHeight
 	txOutput.Recharge.Index = 0 //账户模型填0
@@ -610,4 +613,13 @@ func (bs *EOSBlockScanner) GetChainInfo() (infoResp *eos.InfoResp, err error) {
 func (bs *EOSBlockScanner) GetScannedBlockHeight() uint64 {
 	height, _, _ := bs.GetLocalBlockHead()
 	return uint64(height)
+}
+
+
+//GetBalanceByAddress 查询地址余额
+func (bs *EOSBlockScanner) GetBalanceByAddress(address ...string) ([]*openwallet.Balance, error) {
+
+	addrBalanceArr := make([]*openwallet.Balance, 0)
+
+	return addrBalanceArr, nil
 }
