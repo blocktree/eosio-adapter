@@ -194,10 +194,10 @@ func (decoder *TransactionDecoder) VerifyRawTransaction(wrapper openwallet.Walle
 			signature, _ := hex.DecodeString(keySignature.Signature)
 			publicKey, _ := hex.DecodeString(keySignature.Address.PublicKey)
 
-			//验证签名
+			//验证签名，解压公钥，解压后首字节04要去掉
 			uncompessedPublicKey := owcrypt.PointDecompress(publicKey, decoder.wm.CurveType())
-			decoder.wm.Log.Debugf("publicKey: %s", hex.EncodeToString(uncompessedPublicKey))
-			valid, compactSig, err := eos_txsigner.Default.VerifyAndCombineSignature(messsage, uncompessedPublicKey, signature)
+
+			valid, compactSig, err := eos_txsigner.Default.VerifyAndCombineSignature(messsage, uncompessedPublicKey[1:], signature)
 			if !valid {
 				return fmt.Errorf("transaction verify failed: %v", err)
 			}
