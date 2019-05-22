@@ -411,7 +411,7 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 
 	symbol := data.Quantity.Symbol.Symbol
 	decimals := int32(data.Quantity.Symbol.Precision)
-	amount := common.IntToDecimals(int64(data.Quantity.Amount), decimals)
+	amount := common.NewString(data.Quantity.Amount).String()
 
 	contractID := openwallet.GenContractID(bs.wm.Symbol(), string(action.Account))
 	coin := openwallet.Coin{
@@ -434,10 +434,10 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 		BlockHeight: result.BlockHeight,
 		TxID:        result.TxID,
 		Decimal:     decimals,
-		Amount:      amount.String(),
+		Amount:      amount,
 		ConfirmTime: result.BlockTime,
-		From:        []string{data.From + ":" + amount.String()},
-		To:          []string{data.To + ":" + amount.String()},
+		From:        []string{data.From + ":" + amount},
+		To:          []string{data.To + ":" + amount},
 		IsMemo:      true,
 		Status:      status,
 		Reason:      reason,
