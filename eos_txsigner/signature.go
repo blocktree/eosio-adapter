@@ -1,11 +1,8 @@
 package eos_txsigner
 
 import (
-	"encoding/hex"
 	"errors"
-	"github.com/blocktree/openwallet/log"
-
-	owcrypt "github.com/blocktree/go-owcrypt"
+	"github.com/blocktree/go-owcrypt"
 )
 
 func signRFC6979(privateKey, hash []byte, nonce int) ([]byte, error) {
@@ -87,7 +84,7 @@ func SignCanonical(privateKey, hash []byte) ([]byte, error) {
 		if ret != owcrypt.SUCCESS {
 			return nil, errors.New("Invalid private key!")
 		}
-		log.Debugf("SignCanonical publicKey: %s", hex.EncodeToString(publicKey))
+
 		compactSig, err := makeCompact(sig, publicKey, hash)
 		if err != nil {
 			continue
