@@ -18,17 +18,20 @@ package eosio
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/eoscanada/eos-go/ecc"
-	"github.com/eoscanada/eos-go/token"
+	"github.com/blocktree/eosio-adapter/eos_txsigner"
+	"github.com/blocktree/go-owcrypt"
 	"time"
 
-	"github.com/blocktree/go-owcdrivers/eosSignature"
+	"github.com/eoscanada/eos-go/ecc"
+	"github.com/eoscanada/eos-go/token"
+
 	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openwallet"
 	"github.com/eoscanada/eos-go"
 	"github.com/shopspring/decimal"
 )
 
+// TransactionDecoder 交易单解析器
 type TransactionDecoder struct {
 	openwallet.TransactionDecoderBase
 	wm *WalletManager //钱包管理者
@@ -146,7 +149,7 @@ func (decoder *TransactionDecoder) SignRawTransaction(wrapper openwallet.WalletD
 
 			decoder.wm.Log.Debug("hash:", hash)
 
-			sig, err := eosSignature.SignCanonical(keyBytes, hash)
+			sig, err := eos_txsigner.Default.SignTransactionHash(hash, keyBytes, decoder.wm.CurveType())
 			if err != nil {
 				return fmt.Errorf("sign transaction hash failed, unexpected err: %v", err)
 			}
@@ -187,24 +190,24 @@ func (decoder *TransactionDecoder) VerifyRawTransaction(wrapper openwallet.Walle
 		decoder.wm.Log.Debug("accountID Signatures:", accountID)
 		for _, keySignature := range keySignatures {
 
+			messsage, _ := hex.DecodeString(keySignature.Message)
 			signature, _ := hex.DecodeString(keySignature.Signature)
+			publicKey, _ := hex.DecodeString(keySignature.Address.PublicKey)
+
+			//验证签名
+			uncompessedPublicKey := owcrypt.PointDecompress(publicKey, decoder.wm.CurveType())
+			decoder.wm.Log.Debugf("publicKey: %s", hex.EncodeToString(uncompessedPublicKey))
+			valid, compactSig, err := eos_txsigner.Default.VerifyAndCombineSignature(messsage, uncompessedPublicKey, signature)
+			if !valid {
+				return fmt.Errorf("transaction verify failed: %v", err)
+			}
 
 			stx.Signatures = append(
 				stx.Signatures,
-				ecc.Signature{Curve: ecc.CurveK1, Content: signature},
+				ecc.Signature{Curve: ecc.CurveK1, Content: compactSig},
 			)
-
-			decoder.wm.Log.Debug("Signature:", keySignature.Signature)
-			decoder.wm.Log.Debug("PublicKey:", keySignature.Address.PublicKey)
 		}
 	}
-
-	//packed, err := stx.Pack(eos.CompressionNone)
-	//if err != nil {
-	//	return err
-	//}
-
-	//TODO:验证签名是否通过
 
 	bin, err := eos.MarshalBinary(stx)
 	if err != nil {
@@ -217,7 +220,7 @@ func (decoder *TransactionDecoder) VerifyRawTransaction(wrapper openwallet.Walle
 	return nil
 }
 
-//SendRawTransaction 广播交易单
+// SubmitRawTransaction 广播交易单
 func (decoder *TransactionDecoder) SubmitRawTransaction(wrapper openwallet.WalletDAI, rawTx *openwallet.RawTransaction) (*openwallet.Transaction, error) {
 
 	var stx eos.SignedTransaction

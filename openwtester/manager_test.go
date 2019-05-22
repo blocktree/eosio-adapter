@@ -1,17 +1,19 @@
 package openwtester
 
 import (
+	"path/filepath"
+	"testing"
+
 	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openw"
 	"github.com/blocktree/openwallet/openwallet"
-	"path/filepath"
-	"testing"
 )
 
 var (
 	testApp        = "assets-adapter"
 	configFilePath = filepath.Join("conf")
 )
+
 
 func testInitWalletManager() *openw.WalletManager {
 	log.SetLogFuncCall(true)
@@ -22,6 +24,7 @@ func testInitWalletManager() *openw.WalletManager {
 	tc.SupportAssets = []string{
 		"EOS",
 	}
+
 	return openw.NewWalletManager(tc)
 	//tm.Init()
 }

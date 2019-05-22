@@ -58,10 +58,9 @@ func TestSubscribeAddress_EOS(t *testing.T) {
 	var (
 		endRunning = make(chan bool, 1)
 		symbol     = "EOS"
-		//accountID  = "CbnmpvJNsUjtEMRoy5Nf5FGTyfjLbke8FuKjKtEUc7fs"
 		addrs = map[string]string{
 			"eostesterabc": "sender",
-			"eostesterbob": "receiver",
+			"eostesterbob": "sender",
 		}
 	)
 
