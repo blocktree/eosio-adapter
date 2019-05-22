@@ -42,6 +42,11 @@ func (wm *WalletManager) Decimal() int32 {
 	return 4
 }
 
+//BalanceModelType 余额模型类型
+func (wm *WalletManager) BalanceModelType() openwallet.BalanceModelType {
+	return openwallet.BalanceModelTypeAccount
+}
+
 //GetAddressDecode 地址解析器
 func (wm *WalletManager) GetAddressDecode() openwallet.AddressDecoder {
 	return wm.Decoder

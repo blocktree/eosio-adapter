@@ -105,8 +105,8 @@ func TestWalletManager_GetTransactionByWxID(t *testing.T) {
 
 func TestWalletManager_GetAssetsAccountBalance(t *testing.T) {
 	tm := testInitWalletManager()
-	walletID := "VzMPgLhU83HbsGabLDAzyAM5NaY14d6gZc"
-	accountID := "2UdnebpnSAk8b5btBD5e5dAQLcankywAX3ACaz7deim3"
+	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
+	accountID := "D9VaHgK694tJ7AkSCmKpUHotN3XrrFqPHQGMnTypBVEU"
 
 	balance, err := tm.GetAssetsAccountBalance(testApp, walletID, accountID)
 	if err != nil {
@@ -118,15 +118,16 @@ func TestWalletManager_GetAssetsAccountBalance(t *testing.T) {
 
 func TestWalletManager_GetAssetsAccountTokenBalance(t *testing.T) {
 	tm := testInitWalletManager()
-	walletID := "WMTUzB3LWaSKNKEQw9Sn73FjkEoYGHEp4B"
-	accountID := "59t47qyjHUMZ6PGAdjkJopE9ffAPUkdUhSinJqcWRYZ1"
+	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
+	//accountID := "D9VaHgK694tJ7AkSCmKpUHotN3XrrFqPHQGMnTypBVEU"
+	accountID := "AwxbDgWv6d8DUFk36SNWGw3y6GE9RbZtVGjAsQqP3u5y"
 
 	contract := openwallet.SmartContract{
-		Address:  "0x4092678e4E78230F46A1534C0fbc8fA39780892B",
-		Symbol:   "ETH",
-		Name:     "OCoin",
-		Token:    "OCN",
-		Decimals: 18,
+		Address:  "eosio.token",
+		Symbol:   "EOS",
+		Name:     "EOS",
+		Token:    "EOS",
+		Decimals: 4,
 	}
 
 	balance, err := tm.GetAssetsAccountTokenBalance(testApp, walletID, accountID, contract)
@@ -140,7 +141,7 @@ func TestWalletManager_GetAssetsAccountTokenBalance(t *testing.T) {
 func TestWalletManager_GetEstimateFeeRate(t *testing.T) {
 	tm := testInitWalletManager()
 	coin := openwallet.Coin{
-		Symbol: "VSYS",
+		Symbol: "EOS",
 	}
 	feeRate, unit, err := tm.GetEstimateFeeRate(coin)
 	if err != nil {

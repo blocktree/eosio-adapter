@@ -24,7 +24,7 @@ import (
 
 func testNewWalletManager() *WalletManager {
 	wm := NewWalletManager()
-	wm.Config.ServerAPI = "https://n4.zb.cn"
+	wm.Config.ServerAPI = "http://localhost:8888"
 	wm.Api = eos.New(wm.Config.ServerAPI)
 	return wm
 }
@@ -41,7 +41,7 @@ func TestWalletManager_GetInfo(t *testing.T) {
 
 func TestWalletManager_GetAccount(t *testing.T) {
 	wm := testNewWalletManager()
-	r, err := wm.Api.GetAccount("bob")
+	r, err := wm.Api.GetAccount("eostesterkkk")
 	if err != nil {
 		log.Errorf("unexpected error: %v", err)
 		return
@@ -61,7 +61,7 @@ func TestWalletManager_GetBlock(t *testing.T) {
 
 func TestWalletManager_GetTransaction(t *testing.T) {
 	wm := testNewWalletManager()
-	r, err := wm.Api.GetTransaction("827eeaa08de99b29683b86a0306df863db607a093be37e0ad75e01819fd9af11")
+	r, err := wm.Api.GetTransaction("498db83f0358ff7a9e32215d924be4df3e84bf7fef1614e241fb764afe3ecd8d")
 	if err != nil {
 		log.Errorf("unexpected error: %v", err)
 		return
