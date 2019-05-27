@@ -537,6 +537,19 @@ func (bs *EOSBlockScanner) newExtractDataNotify(height uint64, extractData map[s
 //ScanBlock 扫描指定高度区块
 func (bs *EOSBlockScanner) ScanBlock(height uint64) error {
 
+	block, err := bs.scanBlock(height)
+	if err != nil {
+		return err
+	}
+
+	//通知新区块给观测者，异步处理
+	bs.newBlockNotify(block)
+
+	return nil
+}
+
+func (bs *EOSBlockScanner) scanBlock(height uint64) (*eos.BlockResp, error) {
+
 	block, err := bs.wm.Api.GetBlockByNum(uint32(height))
 	if err != nil {
 		bs.wm.Log.Std.Info("block scanner can not get new block data; unexpected error: %v", err)
@@ -545,27 +558,17 @@ func (bs *EOSBlockScanner) ScanBlock(height uint64) error {
 		unscanRecord := NewUnscanRecord(height, "", err.Error())
 		bs.SaveUnscanRecord(unscanRecord)
 		bs.wm.Log.Std.Info("block height: %d extract failed.", height)
-		return err
+		return nil, err
 	}
-
-	bs.scanBlock(block)
-
-	return nil
-}
-
-func (bs *EOSBlockScanner) scanBlock(block *eos.BlockResp) error {
 
 	bs.wm.Log.Std.Info("block scanner scanning height: %d ...", block.ID.String())
 
-	err := bs.BatchExtractTransactions(uint64(block.BlockNum), block.ID.String(), block.Timestamp.Unix(), block.Transactions)
+	err = bs.BatchExtractTransactions(uint64(block.BlockNum), block.ID.String(), block.Timestamp.Unix(), block.Transactions)
 	if err != nil {
 		bs.wm.Log.Std.Info("block scanner can not extractRechargeRecords; unexpected error: %v", err)
 	}
 
-	//通知新区块给观测者，异步处理
-	bs.newBlockNotify(block)
-
-	return nil
+	return block, nil
 }
 
 //SetRescanBlockHeight 重置区块链扫描高度
