@@ -18,9 +18,10 @@ package eosio
 import (
 	"encoding/hex"
 	"fmt"
+	"time"
+
 	"github.com/blocktree/eosio-adapter/eos_txsigner"
 	"github.com/blocktree/go-owcrypt"
-	"time"
 
 	"github.com/eoscanada/eos-go/ecc"
 	"github.com/eoscanada/eos-go/token"
@@ -83,12 +84,12 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 	// 检查目标账户是否存在
 	accountTo, err := decoder.wm.Api.GetAccount(eos.AccountName(to))
 	if err != nil || accountTo == nil {
-		return fmt.Errorf("eos account of to not found on chain")
+		return openwallet.Errorf(openwallet.ErrAccountNotAddress, "[%s] have not addresses", accountID)
 	}
 
 	accountAssets, err := decoder.wm.Api.GetCurrencyBalance(eos.AccountName(account.Alias), tokenCoin, eos.AccountName(codeAccount))
 	if len(accountAssets) == 0 {
-		return fmt.Errorf("eos account balance is not enough")
+		return openwallet.Errorf(openwallet.ErrInsufficientBalanceOfAccount, "all address's balance of account is not enough")
 	}
 
 	accountBalance = accountAssets[0]
