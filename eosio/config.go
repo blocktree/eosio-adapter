@@ -16,15 +16,14 @@
 package eosio
 
 import (
-	"github.com/blocktree/go-owcrypt"
-	"github.com/blocktree/openwallet/common/file"
 	"path/filepath"
 	"strings"
+
+	"github.com/blocktree/go-owcrypt"
+	"github.com/blocktree/openwallet/common/file"
 )
 
 const (
-	//币种
-	Symbol    = "EOS"
 	CurveType = owcrypt.ECC_CURVE_SECP256K1
 
 	//默认配置内容
@@ -34,6 +33,11 @@ const (
 serverAPI = ""
 
 `
+)
+
+var (
+	//币种
+	Symbol = "EOS"
 )
 
 type WalletConfig struct {
@@ -66,6 +70,8 @@ func NewConfig(symbol string) *WalletConfig {
 
 	//币种
 	c.Symbol = symbol
+	Symbol = symbol
+
 	c.CurveType = CurveType
 
 	//区块链数据
