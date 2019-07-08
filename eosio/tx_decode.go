@@ -404,6 +404,7 @@ func (decoder *TransactionDecoder) createRawTransaction(
 		keySignList      = make([]*openwallet.KeySignature, 0)
 		accountID        = rawTx.Account.AccountID
 		amountDec        = decimal.Zero
+		codeAccount      = eos.AccountName(rawTx.Coin.Contract.Address)
 	)
 
 	for k, v := range rawTx.To {
@@ -416,7 +417,11 @@ func (decoder *TransactionDecoder) createRawTransaction(
 	if err := txOpts.FillFromChain(decoder.wm.Api); err != nil {
 		return openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "filling tx opts: %s", err)
 	}
-	tx := eos.NewTransaction([]*eos.Action{token.NewTransfer(accountName, to, quantity, memo)}, txOpts)
+	action := token.NewTransfer(accountName, to, quantity, memo)
+	if codeAccount != action.Account {
+		action.Account = codeAccount
+	}
+	tx := eos.NewTransaction([]*eos.Action{action}, txOpts)
 	stx := eos.NewSignedTransaction(tx)
 	txdata, cfd, err := stx.PackedTransactionAndCFD()
 	if err != nil {
