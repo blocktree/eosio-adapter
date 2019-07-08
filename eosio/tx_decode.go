@@ -71,8 +71,8 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 
 	//账户是否上链
 	accountResp, err := decoder.wm.Api.GetAccount(eos.AccountName(account.Alias))
-	if err != nil || accountResp == nil {
-		return fmt.Errorf("eos account of from not found on chain")
+	if err != nil && accountResp == nil {
+		return fmt.Errorf("%s account of from not found on chain", decoder.wm.Symbol())
 	}
 
 	for k, v := range rawTx.To {
@@ -83,7 +83,7 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 
 	// 检查目标账户是否存在
 	accountTo, err := decoder.wm.Api.GetAccount(eos.AccountName(to))
-	if err != nil || accountTo == nil {
+	if err != nil && accountTo == nil {
 		return openwallet.Errorf(openwallet.ErrAccountNotAddress, "[%s] have not addresses", accountID)
 	}
 
@@ -328,14 +328,14 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(wrapper 
 
 	//账户是否上链
 	accountResp, err := decoder.wm.Api.GetAccount(eos.AccountName(account.Alias))
-	if err != nil || accountResp == nil {
-		return nil, fmt.Errorf("eos account of from not found on chain")
+	if err != nil && accountResp == nil {
+		return nil, fmt.Errorf("%s account of from not found on chain", decoder.wm.Symbol())
 	}
 
 	// 检查目标账户是否存在
 	accountTo, err := decoder.wm.Api.GetAccount(eos.AccountName(sumRawTx.SummaryAddress))
-	if err != nil || accountTo == nil {
-		return nil, fmt.Errorf("eos account of to not found on chain")
+	if err != nil && accountTo == nil {
+		return nil, fmt.Errorf("%s account of to not found on chain", decoder.wm.Symbol())
 	}
 
 	accountAssets, err := decoder.wm.Api.GetCurrencyBalance(eos.AccountName(account.Alias), tokenCoin, eos.AccountName(codeAccount))
