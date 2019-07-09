@@ -55,7 +55,7 @@ func (decoder *ContractDecoder) GetTokenBalanceByAddress(contract openwallet.Sma
 			return nil, fmt.Errorf("token contract does not have valid protocol: %s", contract.Protocol)
 		}
 		codeAccount = addr[0]
-		tokenCoin = addr[1]
+		tokenCoin = strings.ToUpper(addr[1])
 	} else {
 		codeAccount = contract.Address
 		tokenCoin = contract.Token
