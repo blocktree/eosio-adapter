@@ -18,6 +18,7 @@ package eosio
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/blocktree/eosio-adapter/eos_txsigner"
@@ -53,11 +54,22 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 		accountBalance eos.Asset
 		amountStr      string
 		to             string
+		codeAccount    string
+		tokenCoin      string
+		protocol       = rawTx.Coin.Contract.Protocol
 	)
 
-	codeAccount := rawTx.Coin.Contract.Address
-	tokenCoin := rawTx.Coin.Contract.Token
-	//tokenDecimals := rawTx.Coin.Contract.Decimals
+	if protocol == ProtocolMultipleToken {
+		addr := strings.Split(rawTx.Coin.Contract.Address, ":")
+		if len(addr) != 2 {
+			return fmt.Errorf("token contract does not have valid protocol: %s", protocol)
+		}
+		codeAccount = addr[0]
+		tokenCoin = addr[0]
+	} else {
+		codeAccount = rawTx.Coin.Contract.Address
+		tokenCoin = rawTx.Coin.Contract.Token
+	}
 
 	//获取wallet
 	account, err := wrapper.GetAssetsAccountInfo(accountID)
@@ -303,14 +315,25 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(wrapper 
 		rawTxArray     = make([]*openwallet.RawTransactionWithError, 0)
 		accountID      = sumRawTx.Account.AccountID
 		accountBalance eos.Asset
+		codeAccount    string
+		tokenCoin      string
+		protocol       = sumRawTx.Coin.Contract.Protocol
 	)
 
 	minTransfer, _ := decimal.NewFromString(sumRawTx.MinTransfer)
 	retainedBalance, _ := decimal.NewFromString(sumRawTx.RetainedBalance)
 
-	codeAccount := sumRawTx.Coin.Contract.Address
-	tokenCoin := sumRawTx.Coin.Contract.Token
-	//tokenDecimals := rawTx.Coin.Contract.Decimals
+	if protocol == ProtocolMultipleToken {
+		addr := strings.Split(sumRawTx.Coin.Contract.Address, ":")
+		if len(addr) != 2 {
+			return nil, fmt.Errorf("token contract does not have valid protocol: %s", protocol)
+		}
+		codeAccount = addr[0]
+		tokenCoin = addr[1]
+	} else {
+		codeAccount = sumRawTx.Coin.Contract.Address
+		tokenCoin = sumRawTx.Coin.Contract.Token
+	}
 
 	if minTransfer.LessThan(retainedBalance) {
 		return nil, fmt.Errorf("mini transfer amount must be greater than address retained balance")
