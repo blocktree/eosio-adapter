@@ -65,7 +65,7 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 			return fmt.Errorf("token contract does not have valid protocol: %s", protocol)
 		}
 		codeAccount = addr[0]
-		tokenCoin = addr[0]
+		tokenCoin = addr[1]
 	} else {
 		codeAccount = rawTx.Coin.Contract.Address
 		tokenCoin = rawTx.Coin.Contract.Token

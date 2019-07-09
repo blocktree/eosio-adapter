@@ -19,8 +19,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/blocktree/openwallet/common"
 	"time"
+
+	"github.com/blocktree/openwallet/common"
 
 	"github.com/blocktree/openwallet/log"
 	"github.com/blocktree/openwallet/openwallet"
@@ -408,12 +409,11 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 	status := "1"
 	reason := ""
 
-
 	symbol := data.Quantity.Symbol.Symbol
 	decimals := int32(data.Quantity.Symbol.Precision)
 	amount := common.NewString(data.Quantity.Amount).String()
 
-	contractID := openwallet.GenContractID(bs.wm.Symbol(), string(action.Account))
+	contractID := openwallet.GenContractID(bs.wm.Symbol(), string(action.Account)+":"+symbol)
 	coin := openwallet.Coin{
 		Symbol:     symbol,
 		IsContract: true,
@@ -628,7 +628,6 @@ func (bs *EOSBlockScanner) GetScannedBlockHeight() uint64 {
 	height, _, _ := bs.GetLocalBlockHead()
 	return uint64(height)
 }
-
 
 //GetBalanceByAddress 查询地址余额
 func (bs *EOSBlockScanner) GetBalanceByAddress(address ...string) ([]*openwallet.Balance, error) {
