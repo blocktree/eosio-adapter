@@ -636,3 +636,12 @@ func (bs *EOSBlockScanner) GetBalanceByAddress(address ...string) ([]*openwallet
 
 	return addrBalanceArr, nil
 }
+
+func (bs *EOSBlockScanner) GetCurrentBlockHeader() (*openwallet.BlockHeader, error) {
+	headBlock, err := bs.GetGlobalHeadBlock()
+	if err != nil {
+		bs.wm.Log.Std.Info("get global head block error;unexpected error:%v", err)
+		return nil, err
+	}
+	return &openwallet.BlockHeader{Height: uint64(headBlock.BlockNum), Hash: headBlock.String()}, nil
+}
