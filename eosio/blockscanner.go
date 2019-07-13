@@ -415,7 +415,7 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 
 	contractID := openwallet.GenContractID(bs.wm.Symbol(), string(action.Account)+":"+symbol)
 	coin := openwallet.Coin{
-		Symbol:     symbol,
+		Symbol:     bs.wm.Symbol(),
 		IsContract: true,
 		ContractID: contractID,
 	}
@@ -635,4 +635,13 @@ func (bs *EOSBlockScanner) GetBalanceByAddress(address ...string) ([]*openwallet
 	addrBalanceArr := make([]*openwallet.Balance, 0)
 
 	return addrBalanceArr, nil
+}
+
+func (bs *EOSBlockScanner) GetCurrentBlockHeader() (*openwallet.BlockHeader, error) {
+	infoResp, err := bs.GetChainInfo()
+	if err != nil {
+		bs.wm.Log.Std.Info("get chain info error;unexpected error:%v", err)
+		return nil, err
+	}
+	return &openwallet.BlockHeader{Height: uint64(infoResp.HeadBlockNum), Hash: infoResp.HeadBlockID.String()}, nil
 }

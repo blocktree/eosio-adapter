@@ -16,19 +16,18 @@
 package eosio
 
 import (
+	"fmt"
 	"testing"
-
-	"github.com/eoscanada/eos-go"
 )
 
 //TestScanBlockTask
-func TestScanBlockTask(t *testing.T) {
-	wm := NewWalletManager()
-	wm.Config.ServerAPI = "https://node1.zbeos.com"
-	wm.Api = eos.New(wm.Config.ServerAPI)
-	wm.Blockscanner.Scanning = true
-	wm.Blockscanner.ScanBlockTask()
-}
+// func TestScanBlockTask(t *testing.T) {
+// 	wm := NewWalletManager()
+// 	wm.Config.ServerAPI = "https://node1.zbeos.com"
+// 	wm.Api = eos.New(wm.Config.ServerAPI)
+// 	wm.Blockscanner.Scanning = true
+// 	wm.Blockscanner.ScanBlockTask()
+// }
 
 func TestEOSBlockScanner_ExtractTransaction(t *testing.T) {
 	//wm := NewWalletManager()
@@ -45,4 +44,11 @@ func TestEOSBlockScanner_ExtractTransaction(t *testing.T) {
 	//result := bs.ExtractTransaction(uint64(blockResp.BlockNum), blockHash, blockResp.Timestamp.Unix(), &blockResp.Transactions[7], bs.ScanAddressFunc)
 	//
 	//fmt.Println(result)
+}
+
+func TestGetCurrentBlockHeader(t *testing.T) {
+	wm := testNewWalletManager()
+	bs := wm.Blockscanner
+	header, _ := bs.GetCurrentBlockHeader()
+	fmt.Println(header)
 }
