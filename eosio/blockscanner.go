@@ -415,7 +415,7 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 
 	contractID := openwallet.GenContractID(bs.wm.Symbol(), string(action.Account)+":"+symbol)
 	coin := openwallet.Coin{
-		Symbol:     symbol,
+		Symbol:     bs.wm.Symbol(),
 		IsContract: true,
 		ContractID: contractID,
 	}
