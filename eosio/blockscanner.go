@@ -136,7 +136,6 @@ func (bs *EOSBlockScanner) ScanBlockTask() {
 			bs.wm.Log.Std.Info("block scanner can not get new block data by rpc; unexpected error: %v", err)
 			break
 		}
-		hash := block.ID.String()
 
 		if currentHash != block.Previous.String() {
 			bs.wm.Log.Std.Info("block has been fork on height: %d.", currentHeight)
@@ -178,13 +177,12 @@ func (bs *EOSBlockScanner) ScanBlockTask() {
 			}
 
 		} else {
+			currentHash = block.ID.String()
 			err := bs.BatchExtractTransactions(uint64(currentHeight), currentHash, block.Timestamp.Unix(), block.Transactions)
 			if err != nil {
 				bs.wm.Log.Std.Error("block scanner ran BatchExtractTransactions occured unexpected error: %v", err)
 			}
 
-			//重置当前区块的hash
-			currentHash = hash
 			//保存本地新高度
 			bs.SaveLocalBlockHead(currentHeight, currentHash)
 			bs.SaveLocalBlock(ParseBlock(block))
