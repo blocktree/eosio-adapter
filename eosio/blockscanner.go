@@ -423,7 +423,7 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 	coin.Contract = openwallet.SmartContract{
 		Symbol:     bs.wm.Symbol(),
 		ContractID: contractID,
-		Address:    string(action.Account),
+		Address:    string(action.Account)+":"+symbol,
 		Token:      symbol,
 	}
 

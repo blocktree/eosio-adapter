@@ -477,8 +477,8 @@ func (decoder *TransactionDecoder) createRawTransaction(
 
 	rawTx.RawHex = hex.EncodeToString(txdata)
 	rawTx.Signatures[rawTx.Account.AccountID] = keySignList
-	rawTx.FeeRate = ""
-	rawTx.Fees = ""
+	rawTx.FeeRate = "0"
+	rawTx.Fees = "0"
 	rawTx.IsBuilt = true
 	rawTx.TxAmount = accountTotalSent.String()
 	rawTx.TxFrom = txFrom
