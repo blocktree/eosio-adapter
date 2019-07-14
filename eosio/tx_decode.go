@@ -56,20 +56,14 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 		to             string
 		codeAccount    string
 		tokenCoin      string
-		protocol       = rawTx.Coin.Contract.Protocol
 	)
 
-	if protocol == ProtocolMultipleToken {
-		addr := strings.Split(rawTx.Coin.Contract.Address, ":")
-		if len(addr) != 2 {
-			return fmt.Errorf("token contract does not have valid protocol: %s", protocol)
-		}
-		codeAccount = addr[0]
-		tokenCoin = strings.ToUpper(addr[1])
-	} else {
-		codeAccount = rawTx.Coin.Contract.Address
-		tokenCoin = rawTx.Coin.Contract.Token
+	addr := strings.Split(rawTx.Coin.Contract.Address, ":")
+	if len(addr) != 2 {
+		return fmt.Errorf("token contract's address is invalid: %s", rawTx.Coin.Contract.Address)
 	}
+	codeAccount = addr[0]
+	tokenCoin = strings.ToUpper(addr[1])
 
 	//获取wallet
 	account, err := wrapper.GetAssetsAccountInfo(accountID)
@@ -317,23 +311,17 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(wrapper 
 		accountBalance eos.Asset
 		codeAccount    string
 		tokenCoin      string
-		protocol       = sumRawTx.Coin.Contract.Protocol
 	)
 
 	minTransfer, _ := decimal.NewFromString(sumRawTx.MinTransfer)
 	retainedBalance, _ := decimal.NewFromString(sumRawTx.RetainedBalance)
 
-	if protocol == ProtocolMultipleToken {
-		addr := strings.Split(sumRawTx.Coin.Contract.Address, ":")
-		if len(addr) != 2 {
-			return nil, fmt.Errorf("token contract does not have valid protocol: %s", protocol)
-		}
-		codeAccount = addr[0]
-		tokenCoin = strings.ToUpper(addr[1])
-	} else {
-		codeAccount = sumRawTx.Coin.Contract.Address
-		tokenCoin = sumRawTx.Coin.Contract.Token
+	addr := strings.Split(sumRawTx.Coin.Contract.Address, ":")
+	if len(addr) != 2 {
+		return nil, fmt.Errorf("token contract's address is invalid: %s", sumRawTx.Coin.Contract.Address)
 	}
+	codeAccount = addr[0]
+	tokenCoin = strings.ToUpper(addr[1])
 
 	if minTransfer.LessThan(retainedBalance) {
 		return nil, fmt.Errorf("mini transfer amount must be greater than address retained balance")
