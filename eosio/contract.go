@@ -24,11 +24,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const (
-	ProtocolSingleToken   = "single-token"
-	ProtocolMultipleToken = "multiple-token"
-)
-
 type ContractDecoder struct {
 	openwallet.SmartContractDecoderBase
 	wm *WalletManager
@@ -49,17 +44,12 @@ func (decoder *ContractDecoder) GetTokenBalanceByAddress(contract openwallet.Sma
 	)
 	tokenBalanceList := make([]*openwallet.TokenBalance, 0)
 
-	if contract.Protocol == ProtocolMultipleToken {
-		addr := strings.Split(contract.Address, ":")
-		if len(addr) != 2 {
-			return nil, fmt.Errorf("token contract does not have valid protocol: %s", contract.Protocol)
-		}
-		codeAccount = addr[0]
-		tokenCoin = strings.ToUpper(addr[1])
-	} else {
-		codeAccount = contract.Address
-		tokenCoin = contract.Token
+	addr := strings.Split(contract.Address, ":")
+	if len(addr) != 2 {
+		return nil, fmt.Errorf("token contract's address is invalid: %s", contract.Address)
 	}
+	codeAccount = addr[0]
+	tokenCoin = strings.ToUpper(addr[1])
 
 	for _, addr := range address {
 
