@@ -87,14 +87,11 @@ type TransferData struct {
 func ParseHeader(b *eos.BlockResp) *openwallet.BlockHeader {
 	obj := openwallet.BlockHeader{}
 
-	hash, _ := b.BlockID()
-	height := b.BlockNumber()
-
 	//解析josn
 	obj.Merkleroot = b.TransactionMRoot.String()
-	obj.Hash = hash.String()
+	obj.Hash = b.ID.String()
 	obj.Previousblockhash = b.Previous.String()
-	obj.Height = uint64(height)
+	obj.Height = uint64(b.BlockNum)
 	obj.Time = uint64(b.Timestamp.Unix())
 	obj.Symbol = Symbol
 	return &obj
