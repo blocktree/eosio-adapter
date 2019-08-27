@@ -258,13 +258,13 @@ func (bs *EOSBlockScanner) BatchExtractTransactions(blockHeight uint64, blockHas
 	extractWork := func(eblockHeight uint64, eBlockHash string, eBlockTime int64, mTransactions []eos.TransactionReceipt, eProducer chan ExtractResult) {
 		for _, tx := range mTransactions {
 			bs.extractingCH <- struct{}{}
-			go func(mBlockHeight uint64, mTx *eos.TransactionReceipt, end chan struct{}, mProducer chan<- ExtractResult) {
+			go func(mBlockHeight uint64, mTx eos.TransactionReceipt, end chan struct{}, mProducer chan<- ExtractResult) {
 				//导出提出的交易
 				mProducer <- bs.ExtractTransaction(mBlockHeight, eBlockHash, eBlockTime, mTx, bs.ScanTargetFunc)
 				//释放
 				<-end
 
-			}(eblockHeight, &tx, bs.extractingCH, eProducer)
+			}(eblockHeight, tx, bs.extractingCH, eProducer)
 		}
 	}
 	/*	开启导出的线程	*/
@@ -315,7 +315,7 @@ func (bs *EOSBlockScanner) extractRuntime(producer chan ExtractResult, worker ch
 }
 
 // ExtractTransaction 提取交易单
-func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash string, blockTime int64, transaction *eos.TransactionReceipt, scanTargetFunc openwallet.BlockScanTargetFunc) ExtractResult {
+func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash string, blockTime int64, transaction eos.TransactionReceipt, scanTargetFunc openwallet.BlockScanTargetFunc) ExtractResult {
 	var (
 		success = true
 		result  = ExtractResult{
@@ -337,7 +337,11 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 		bs.wm.Log.Std.Debug("trx packed empty: %s", transaction.Transaction.ID)
 		return ExtractResult{Success: true}
 	}
-	signedTransaction, _ := transaction.Transaction.Packed.Unpack()
+	signedTransaction, err := transaction.Transaction.Packed.Unpack()
+	if err != nil {
+		bs.wm.Log.Std.Error("fail to unpack trx: %s", err)
+		return ExtractResult{Success: false}
+	}
 
 	for _, action := range signedTransaction.Actions {
 
@@ -354,7 +358,11 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 				bs.wm.Log.Std.Error("convert abi error")
 				return ExtractResult{Success: false}
 			}
-			bytes, _ := abi.DecodeAction(action.HexData, action.Name)
+			bytes, err := abi.DecodeAction(action.HexData, action.Name)
+			if err != nil {
+				bs.wm.Log.Std.Error("decode action error: %s", err)
+				return ExtractResult{Success: false}
+			}
 
 			var data TransferData
 
@@ -421,7 +429,7 @@ func (bs *EOSBlockScanner) InitExtractResult(sourceKey string, action TransferAc
 	coin.Contract = openwallet.SmartContract{
 		Symbol:     bs.wm.Symbol(),
 		ContractID: contractID,
-		Address:    string(action.Account)+":"+symbol,
+		Address:    string(action.Account) + ":" + symbol,
 		Token:      symbol,
 	}
 
