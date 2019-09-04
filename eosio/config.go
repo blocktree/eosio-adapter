@@ -51,7 +51,7 @@ type WalletConfig struct {
 	//区块链数据文件
 	BlockchainFile string
 	//本地数据库文件路径
-	dbPath string
+	DBPath string
 	//钱包服务API
 	ServerAPI string
 	//默认配置内容
@@ -83,12 +83,12 @@ func NewConfig(symbol string) *WalletConfig {
 	//区块链数据文件
 	c.BlockchainFile = "blockchain.db"
 	//本地数据库文件路径
-	c.dbPath = filepath.Join("data", strings.ToLower(c.Symbol), "db")
+	c.DBPath = filepath.Join("data", strings.ToLower(c.Symbol), "db")
 	//钱包服务API
 	c.ServerAPI = ""
 
 	//创建目录
-	//file.MkdirAll(c.dbPath)
+	//file.MkdirAll(c.DBPath)
 
 	return &c
 }
@@ -102,8 +102,8 @@ func (wc *WalletConfig) makeDataDir() {
 	}
 
 	//本地数据库文件路径
-	wc.dbPath = filepath.Join(wc.DataDir, strings.ToLower(wc.Symbol), "db")
+	wc.DBPath = filepath.Join(wc.DataDir, strings.ToLower(wc.Symbol), "db")
 
 	//创建目录
-	file.MkdirAll(wc.dbPath)
+	file.MkdirAll(wc.DBPath)
 }

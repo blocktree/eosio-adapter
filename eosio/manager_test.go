@@ -23,7 +23,7 @@ import (
 )
 
 func testNewWalletManager() *WalletManager {
-	wm := NewWalletManager()
+	wm := NewWalletManager(nil)
 	wm.Config.ServerAPI = "http://localhost:8888"
 	wm.Api = eos.New(wm.Config.ServerAPI)
 	return wm

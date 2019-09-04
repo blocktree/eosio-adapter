@@ -38,11 +38,12 @@ const (
 type EOSBlockScanner struct {
 	*openwallet.BlockScannerBase
 
-	CurrentBlockHeight   uint64         //当前区块高度
-	extractingCH         chan struct{}  //扫描工作令牌
-	wm                   *WalletManager //钱包管理者
-	IsScanMemPool        bool           //是否扫描交易池
-	RescanLastBlockCount uint64         //重扫上N个区块数量
+	CurrentBlockHeight   uint64          //当前区块高度
+	extractingCH         chan struct{}   //扫描工作令牌
+	wm                   *WalletManager  //钱包管理者
+	IsScanMemPool        bool            //是否扫描交易池
+	RescanLastBlockCount uint64          //重扫上N个区块数量
+	MonitorActions       map[string]bool //监控的操作
 }
 
 //ExtractResult extract result
@@ -72,6 +73,9 @@ func NewEOSBlockScanner(wm *WalletManager) *EOSBlockScanner {
 	bs.wm = wm
 	bs.IsScanMemPool = true
 	bs.RescanLastBlockCount = 0
+	bs.MonitorActions = map[string]bool{
+		"transfer": true,
+	}
 
 	// set task
 	bs.SetTask(bs.ScanBlockTask)
@@ -345,7 +349,8 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 
 	for _, action := range signedTransaction.Actions {
 
-		if action.Name == "transfer" {
+		if _, exist := bs.MonitorActions[string(action.Name)]; exist {
+		//if action.Name == "transfer" {
 
 			abiInfo, err := bs.wm.ContractDecoder.GetABIInfo(string(action.Account))
 			if err != nil {

@@ -26,7 +26,7 @@ import (
 func (bs *EOSBlockScanner) SaveLocalBlockHead(blockHeight uint32, blockHash string) error {
 
 	//获取本地区块高度
-	db, err := storm.Open(filepath.Join(bs.wm.Config.dbPath, bs.wm.Config.BlockchainFile))
+	db, err := storm.Open(filepath.Join(bs.wm.Config.DBPath, bs.wm.Config.BlockchainFile))
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (bs *EOSBlockScanner) GetLocalBlockHead() (uint32, string, error) {
 	)
 
 	//获取本地区块高度
-	db, err := storm.Open(filepath.Join(bs.wm.Config.dbPath, bs.wm.Config.BlockchainFile))
+	db, err := storm.Open(filepath.Join(bs.wm.Config.DBPath, bs.wm.Config.BlockchainFile))
 	if err != nil {
 		return 0, "", err
 	}
@@ -62,7 +62,7 @@ func (bs *EOSBlockScanner) GetLocalBlockHead() (uint32, string, error) {
 //SaveLocalBlock 记录本地新区块
 func (bs *EOSBlockScanner) SaveLocalBlock(blockHeader *Block) error {
 
-	db, err := storm.Open(filepath.Join(bs.wm.Config.dbPath, bs.wm.Config.BlockchainFile))
+	db, err := storm.Open(filepath.Join(bs.wm.Config.DBPath, bs.wm.Config.BlockchainFile))
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func (bs *EOSBlockScanner) GetLocalBlock(height uint32) (*Block, error) {
 		blockHeader Block
 	)
 
-	db, err := storm.Open(filepath.Join(bs.wm.Config.dbPath, bs.wm.Config.BlockchainFile))
+	db, err := storm.Open(filepath.Join(bs.wm.Config.DBPath, bs.wm.Config.BlockchainFile))
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (bs *EOSBlockScanner) SaveUnscanRecord(record *UnscanRecord) error {
 	}
 
 	//获取本地区块高度
-	db, err := storm.Open(filepath.Join(bs.wm.Config.dbPath, bs.wm.Config.BlockchainFile))
+	db, err := storm.Open(filepath.Join(bs.wm.Config.DBPath, bs.wm.Config.BlockchainFile))
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (bs *EOSBlockScanner) SaveUnscanRecord(record *UnscanRecord) error {
 //DeleteUnscanRecord 删除指定高度的未扫记录
 func (bs *EOSBlockScanner) DeleteUnscanRecord(height uint32) error {
 	//获取本地区块高度
-	db, err := storm.Open(filepath.Join(bs.wm.Config.dbPath, bs.wm.Config.BlockchainFile))
+	db, err := storm.Open(filepath.Join(bs.wm.Config.DBPath, bs.wm.Config.BlockchainFile))
 	if err != nil {
 		return err
 	}

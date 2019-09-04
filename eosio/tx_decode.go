@@ -37,12 +37,14 @@ import (
 type TransactionDecoder struct {
 	openwallet.TransactionDecoderBase
 	wm *WalletManager //钱包管理者
+	//TransferActionName string
 }
 
 //NewTransactionDecoder 交易单解析器
 func NewTransactionDecoder(wm *WalletManager) *TransactionDecoder {
 	decoder := TransactionDecoder{}
 	decoder.wm = wm
+	//decoder.TransferActionName = "transfer"
 	return &decoder
 }
 
@@ -426,6 +428,20 @@ func (decoder *TransactionDecoder) createRawTransaction(
 	if err := txOpts.FillFromChain(decoder.wm.Api); err != nil {
 		return openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "filling tx opts: %s", err)
 	}
+
+	//action := &eos.Action{
+	//	Account: codeAccount,
+	//	Name:    token.ActN(decoder.TransferActionName),
+	//	Authorization: []eos.PermissionLevel{
+	//		{Actor: accountName, Permission: token.PN("active")},
+	//	},
+	//	ActionData: eos.NewActionData(token.Transfer{
+	//		From:     accountName,
+	//		To:       to,
+	//		Quantity: quantity,
+	//		Memo:     memo,
+	//	}),
+	//}
 	action := token.NewTransfer(accountName, to, quantity, memo)
 	if codeAccount != action.Account {
 		action.Account = codeAccount
