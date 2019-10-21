@@ -16,6 +16,8 @@
 package eosio
 
 import (
+	"fmt"
+
 	"github.com/blocktree/go-owcdrivers/addressEncoder"
 )
 
@@ -32,7 +34,11 @@ func NewAddressDecoder(wm *WalletManager) *addressDecoder {
 
 //PrivateKeyToWIF 私钥转WIF
 func (decoder *addressDecoder) PrivateKeyToWIF(priv []byte, isTestnet bool) (string, error) {
-	return "", nil
+	wif := addressEncoder.AddressEncode(priv, addressEncoder.EOS_mainnetPrivateWIF)
+	if len(wif) == 0 {
+		return "", fmt.Errorf("private key can't be encode to WIF")
+	}
+	return wif, nil
 }
 
 //PublicKeyToAddress 公钥转地址
