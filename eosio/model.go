@@ -16,10 +16,6 @@
 package eosio
 
 import (
-	"fmt"
-
-	"github.com/blocktree/openwallet/common"
-	"github.com/blocktree/openwallet/crypto"
 	openwallet "github.com/blocktree/openwallet/openwallet"
 	eos "github.com/eoscanada/eos-go"
 )
@@ -50,24 +46,24 @@ type Block struct {
 	Height       uint32 `storm:"id"`
 	Fork         bool
 }
+//
+////UnscanRecord 扫描失败的区块及交易
+//type UnscanRecord struct {
+//	ID          string `storm:"id"` // primary key
+//	BlockHeight uint64
+//	TxID        string
+//	Reason      string
+//}
 
-//UnscanRecord 扫描失败的区块及交易
-type UnscanRecord struct {
-	ID          string `storm:"id"` // primary key
-	BlockHeight uint64
-	TxID        string
-	Reason      string
-}
-
-//NewUnscanRecord new UnscanRecord
-func NewUnscanRecord(height uint64, txID, reason string) *UnscanRecord {
-	obj := UnscanRecord{}
-	obj.BlockHeight = height
-	obj.TxID = txID
-	obj.Reason = reason
-	obj.ID = common.Bytes2Hex(crypto.SHA256([]byte(fmt.Sprintf("%d_%s", height, txID))))
-	return &obj
-}
+////NewUnscanRecord new UnscanRecord
+//func NewUnscanRecord(height uint64, txID, reason, symbol string) *openwallet.UnscanRecord {
+//	obj := UnscanRecord{}
+//	obj.BlockHeight = height
+//	obj.TxID = txID
+//	obj.Reason = reason
+//	obj.ID = common.Bytes2Hex(crypto.SHA256([]byte(fmt.Sprintf("%d_%s", height, txID))))
+//	return &obj
+//}
 
 // TransferAction transfer action
 type TransferAction struct {

@@ -1,6 +1,7 @@
 package openwtester
 
 import (
+	"github.com/blocktree/openwallet/common/file"
 	"path/filepath"
 	"testing"
 
@@ -12,6 +13,8 @@ import (
 var (
 	testApp        = "assets-adapter"
 	configFilePath = filepath.Join("conf")
+	dbFilePath = filepath.Join("data", "db")
+	dbFileName = "blockchain-eos.db"
 )
 
 
@@ -24,6 +27,8 @@ func testInitWalletManager() *openw.WalletManager {
 	tc.SupportAssets = []string{
 		"EOS",
 	}
+
+	file.MkdirAll(dbFilePath)
 
 	return openw.NewWalletManager(tc)
 	//tm.Init()
