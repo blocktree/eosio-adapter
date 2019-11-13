@@ -176,24 +176,6 @@ func (bs *EOSBlockScanner) SaveUnscanRecord(record *openwallet.UnscanRecord) err
 
 //DeleteUnscanRecord 删除指定高度的未扫记录
 func (bs *EOSBlockScanner) DeleteUnscanRecord(height uint32) error {
-	//获取本地区块高度
-	//db, err := storm.Open(filepath.Join(bs.wm.Config.DBPath, bs.wm.Config.BlockchainFile))
-	//if err != nil {
-	//	return err
-	//}
-	//defer db.Close()
-	//
-	//var list []*UnscanRecord
-	//err = db.Find("BlockHeight", height, &list)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//for _, r := range list {
-	//	db.DeleteStruct(r)
-	//}
-	//
-	//return nil
 
 	if bs.BlockchainDAI == nil {
 		return fmt.Errorf("Blockchain DAI is not setup ")

@@ -100,7 +100,7 @@ func TestSubscribeAddress_EOS(t *testing.T) {
 
 	if scanner.SupportBlockchainDAI() {
 		file.MkdirAll(dbFilePath)
-		dai, err := openwallet.NewBlockchainLocal(filepath.Join(dbFilePath, dbFileName), false)
+		dai, err := openwallet.NewBlockchainLocal(filepath.Join(dbFilePath, dbFileName), true)
 		if err != nil {
 			log.Error("NewBlockchainLocal err: %v", err)
 			return
@@ -109,7 +109,7 @@ func TestSubscribeAddress_EOS(t *testing.T) {
 		scanner.SetBlockchainDAI(dai)
 	}
 
-	//scanner.SetRescanBlockHeight(61824831)
+	//scanner.SetRescanBlockHeight(89487725)
 
 	if scanner == nil {
 		log.Error(symbol, "is not support block scan")
