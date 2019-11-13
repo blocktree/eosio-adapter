@@ -16,16 +16,23 @@
 package eosio
 
 import (
+	"github.com/astaxie/beego/config"
+	"path/filepath"
 	"testing"
 
 	"github.com/blocktree/openwallet/log"
-	eos "github.com/eoscanada/eos-go"
 )
 
 func testNewWalletManager() *WalletManager {
 	wm := NewWalletManager(nil)
-	wm.Config.ServerAPI = "http://localhost:8888"
-	wm.Api = eos.New(wm.Config.ServerAPI)
+	//读取配置
+	absFile := filepath.Join("conf", "EOS.ini")
+	//log.Debug("absFile:", absFile)
+	c, err := config.NewConfig("ini", absFile)
+	if err != nil {
+		return nil
+	}
+	wm.LoadAssetsConfig(c)
 	return wm
 }
 

@@ -194,6 +194,9 @@ func (bs *EOSBlockScanner) ScanBlockTask() {
 			bs.newBlockNotify(block)
 		}
 	}
+
+	//重扫失败区块
+	bs.RescanFailedRecord()
 }
 
 //newBlockNotify 获得新区块后，通知给观测者
@@ -246,7 +249,7 @@ func (bs *EOSBlockScanner) BatchExtractTransactions(blockHeight uint64, blockHas
 				}
 			} else {
 				//记录未扫区块
-				unscanRecord := NewUnscanRecord(height, "", "")
+				unscanRecord := openwallet.NewUnscanRecord(height, "", "", bs.wm.Symbol())
 				bs.SaveUnscanRecord(unscanRecord)
 				failed++ //标记保存失败数
 			}
@@ -344,7 +347,7 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 	signedTransaction, err := transaction.Transaction.Packed.Unpack()
 	if err != nil {
 		bs.wm.Log.Std.Error("fail to unpack trx: %s", err)
-		return ExtractResult{Success: false}
+		return ExtractResult{Success: true}
 	}
 
 	for _, action := range signedTransaction.Actions {
@@ -366,7 +369,7 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 			bytes, err := abi.DecodeAction(action.HexData, action.Name)
 			if err != nil {
 				bs.wm.Log.Std.Error("decode action error: %s", err)
-				return ExtractResult{Success: false}
+				return ExtractResult{Success: true}
 			}
 
 			var data TransferData
@@ -523,6 +526,10 @@ func (bs *EOSBlockScanner) extractTxOutput(action TransferAction, txExtractData 
 
 //newExtractDataNotify 发送通知
 func (bs *EOSBlockScanner) newExtractDataNotify(height uint64, extractData map[string][]*openwallet.TxExtractData) error {
+	if extractData == nil {
+		return nil
+	}
+
 	for o := range bs.Observers {
 		for key, array := range extractData {
 			for _, item := range array {
@@ -530,7 +537,7 @@ func (bs *EOSBlockScanner) newExtractDataNotify(height uint64, extractData map[s
 				if err != nil {
 					log.Error("BlockExtractDataNotify unexpected error:", err)
 					//记录未扫区块
-					unscanRecord := NewUnscanRecord(height, "", "ExtractData Notify failed.")
+					unscanRecord := openwallet.NewUnscanRecord(height, "", "ExtractData Notify failed.", bs.wm.Symbol())
 					err = bs.SaveUnscanRecord(unscanRecord)
 					if err != nil {
 						log.Std.Error("block height: %d, save unscan record failed. unexpected error: %v", height, err.Error())
@@ -566,7 +573,7 @@ func (bs *EOSBlockScanner) scanBlock(height uint64) (*eos.BlockResp, error) {
 		bs.wm.Log.Std.Info("block scanner can not get new block data; unexpected error: %v", err)
 
 		//记录未扫区块
-		unscanRecord := NewUnscanRecord(height, "", err.Error())
+		unscanRecord := openwallet.NewUnscanRecord(height, "", err.Error(), bs.wm.Symbol())
 		bs.SaveUnscanRecord(unscanRecord)
 		bs.wm.Log.Std.Info("block height: %d extract failed.", height)
 		return nil, err
@@ -655,4 +662,63 @@ func (bs *EOSBlockScanner) GetCurrentBlockHeader() (*openwallet.BlockHeader, err
 		return nil, err
 	}
 	return &openwallet.BlockHeader{Height: uint64(infoResp.HeadBlockNum), Hash: infoResp.HeadBlockID.String()}, nil
+}
+
+
+//rescanFailedRecord 重扫失败记录
+func (bs *EOSBlockScanner) RescanFailedRecord() {
+
+	var (
+		blockMap = make(map[uint64][]string)
+	)
+
+	list, err := bs.BlockchainDAI.GetUnscanRecords(bs.wm.Symbol())
+	if err != nil {
+		bs.wm.Log.Std.Info("block scanner can not get rescan data; unexpected error: %v", err)
+	}
+
+	//组合成批处理
+	for _, r := range list {
+
+		if _, exist := blockMap[r.BlockHeight]; !exist {
+			blockMap[r.BlockHeight] = make([]string, 0)
+		}
+
+		if len(r.TxID) > 0 {
+			arr := blockMap[r.BlockHeight]
+			arr = append(arr, r.TxID)
+
+			blockMap[r.BlockHeight] = arr
+		}
+	}
+
+	for height, _ := range blockMap {
+
+		if height == 0 {
+			continue
+		}
+
+		bs.wm.Log.Std.Info("block scanner rescanning height: %d ...", height)
+
+		block, err := bs.wm.Api.GetBlockByNum(uint32(height))
+		if err != nil {
+			bs.wm.Log.Std.Info("block scanner can not get new block data; unexpected error: %v", err)
+			continue
+		}
+
+		err = bs.BatchExtractTransactions(uint64(block.BlockNum), block.ID.String(), block.Timestamp.Unix(), block.Transactions)
+		if err != nil {
+			bs.wm.Log.Std.Info("block scanner can not extractRechargeRecords; unexpected error: %v", err)
+			continue
+		}
+
+		//删除未扫记录
+		bs.DeleteUnscanRecord(uint32(height))
+	}
+}
+
+//SupportBlockchainDAI 支持外部设置区块链数据访问接口
+//@optional
+func (bs *EOSBlockScanner) SupportBlockchainDAI() bool {
+	return true
 }
