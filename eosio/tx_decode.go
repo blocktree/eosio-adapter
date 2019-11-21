@@ -82,7 +82,7 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 	if err != nil && accountResp == nil {
 		return fmt.Errorf("%s account of from not found on chain", decoder.wm.Symbol())
 	}
-
+	fmt.Println("Permission for initn:", accountResp.Permissions[0].RequiredAuth.Keys[0])
 	for k, v := range rawTx.To {
 		amountStr = v
 		to = k
@@ -116,7 +116,7 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 	createTxErr := decoder.createRawTransaction(
 		wrapper,
 		rawTx,
-		eos.AccountName(eos.AccountName(account.Alias)),
+		accountResp,
 		quantity,
 		memo)
 	if createTxErr != nil {
@@ -385,7 +385,7 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(wrapper 
 	createTxErr := decoder.createRawTransaction(
 		wrapper,
 		rawTx,
-		eos.AccountName(eos.AccountName(account.Alias)),
+		accountResp,
 		quantity,
 		memo)
 	rawTxWithErr := &openwallet.RawTransactionWithError{
@@ -403,7 +403,7 @@ func (decoder *TransactionDecoder) CreateSummaryRawTransactionWithError(wrapper 
 func (decoder *TransactionDecoder) createRawTransaction(
 	wrapper openwallet.WalletDAI,
 	rawTx *openwallet.RawTransaction,
-	accountName eos.AccountName,
+	accountResp *eos.AccountResp,
 	quantity eos.Asset,
 	memo string) *openwallet.Error {
 
@@ -442,7 +442,7 @@ func (decoder *TransactionDecoder) createRawTransaction(
 	//		Memo:     memo,
 	//	}),
 	//}
-	action := token.NewTransfer(accountName, to, quantity, memo)
+	action := token.NewTransfer(accountResp.AccountName, to, quantity, memo)
 	if codeAccount != action.Account {
 		action.Account = codeAccount
 	}
@@ -455,34 +455,35 @@ func (decoder *TransactionDecoder) createRawTransaction(
 	//交易哈希
 	sigDigest := eos.SigDigest(txOpts.ChainID, txdata, cfd)
 
-	addresses, err := wrapper.GetAddressList(0, -1,
-		"AccountID", accountID)
-	if err != nil {
-		return openwallet.ConvertError(err)
-	}
+	//查找账户的地址，填充待签消息
+	for _, permission := range accountResp.Permissions {
+		if permission.PermName == "active" {
+			for _, pubKey := range permission.RequiredAuth.Keys {
+				keyStr, _ := decoder.wm.Decoder.PublicKeyToAddress(pubKey.PublicKey.Content, false)
+				addr, err := wrapper.GetAddress(keyStr)
+				if err != nil {
+					return openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "[%s] have not EOS public key: %s", accountID, keyStr)
+				}
 
-	if len(addresses) == 0 {
-		return openwallet.Errorf(openwallet.ErrCreateRawTransactionFailed, "[%s] have not EOS public key", accountID)
-	}
-
-	for _, addr := range addresses {
-		signature := openwallet.KeySignature{
-			EccType: decoder.wm.Config.CurveType,
-			Nonce:   "",
-			Address: addr,
-			Message: hex.EncodeToString(sigDigest),
+				signature := openwallet.KeySignature{
+					EccType: decoder.wm.Config.CurveType,
+					Nonce:   "",
+					Address: addr,
+					Message: hex.EncodeToString(sigDigest),
+				}
+				keySignList = append(keySignList, &signature)
+			}
 		}
-		keySignList = append(keySignList, &signature)
 	}
 
 	//计算账户的实际转账amount
 	//accountTotalSentAddresses, findErr := wrapper.GetAddressList(0, -1, "AccountID", rawTx.Account.AccountID, "Address", to)
-	if accountName != to {
+	if accountResp.AccountName != to {
 		accountTotalSent = accountTotalSent.Add(amountDec)
 	}
 	accountTotalSent = decimal.Zero.Sub(accountTotalSent)
 
-	txFrom = []string{fmt.Sprintf("%s:%s", accountName, amountDec.String())}
+	txFrom = []string{fmt.Sprintf("%s:%s", accountResp.AccountName, amountDec.String())}
 	txTo = []string{fmt.Sprintf("%s:%s", to, amountDec.String())}
 
 	if rawTx.Signatures == nil {
