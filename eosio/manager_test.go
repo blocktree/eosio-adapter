@@ -33,6 +33,7 @@ func testNewWalletManager() *WalletManager {
 		return nil
 	}
 	wm.LoadAssetsConfig(c)
+	wm.client.Debug = true
 	return wm
 }
 
@@ -48,7 +49,7 @@ func TestWalletManager_GetInfo(t *testing.T) {
 
 func TestWalletManager_GetAccount(t *testing.T) {
 	wm := testNewWalletManager()
-	r, err := wm.Api.GetAccount("eostesterkkk")
+	r, err := wm.Api.GetAccount("bltesteos111")
 	if err != nil {
 		log.Errorf("unexpected error: %v", err)
 		return
@@ -88,7 +89,7 @@ func TestWalletManager_GetABI(t *testing.T) {
 
 func TestWalletManager_GetCurrencyBalance(t *testing.T) {
 	wm := testNewWalletManager()
-	r, err := wm.Api.GetCurrencyBalance("bob", "EOS", "eosio.token")
+	r, err := wm.Api.GetCurrencyBalance("bltesteos111", "EOS", "eosio.token")
 	if err != nil {
 		log.Errorf("unexpected error: %v", err)
 		return

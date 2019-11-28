@@ -32,6 +32,7 @@ type WalletManager struct {
 	ContractDecoder openwallet.SmartContractDecoder //智能合约解析器
 	Blockscanner    *EOSBlockScanner                //区块扫描器
 	CacheManager    openwallet.ICacheManager        //缓存管理器
+	client          *Client                         //RPC客户端
 }
 
 func NewWalletManager(cacheManager openwallet.ICacheManager) *WalletManager {

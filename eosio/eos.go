@@ -69,6 +69,7 @@ func (wm *WalletManager) LoadAssetsConfig(c config.Configer) error {
 	wm.Config.ServerAPI = c.String("serverAPI")
 	wm.Api = eos.New(wm.Config.ServerAPI)
 	wm.Config.DataDir = c.String("dataDir")
+	wm.client = NewClient(wm.Config.ServerAPI, false)
 
 	//数据文件夹
 	wm.Config.makeDataDir()
@@ -88,4 +89,11 @@ func (wm *WalletManager) GetAssetsLogger() *log.OWLogger {
 //GetSmartContractDecoder 获取智能合约解析器
 func (wm *WalletManager) GetSmartContractDecoder() openwallet.SmartContractDecoder {
 	return wm.ContractDecoder
+}
+
+
+//GetJsonRPCEndpoint 获取全节点服务的JSON-RPC客户端
+//@optional
+func (wm *WalletManager) GetJsonRPCEndpoint() openwallet.JsonRPCEndpoint {
+	return wm.client
 }

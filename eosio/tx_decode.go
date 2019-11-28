@@ -82,7 +82,7 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 	if err != nil && accountResp == nil {
 		return fmt.Errorf("%s account of from not found on chain", decoder.wm.Symbol())
 	}
-	fmt.Println("Permission for initn:", accountResp.Permissions[0].RequiredAuth.Keys[0])
+	//fmt.Println("Permission for initn:", accountResp.Permissions[0].RequiredAuth.Keys[0])
 	for k, v := range rawTx.To {
 		amountStr = v
 		to = k
@@ -92,7 +92,7 @@ func (decoder *TransactionDecoder) CreateRawTransaction(wrapper openwallet.Walle
 	// 检查目标账户是否存在
 	accountTo, err := decoder.wm.Api.GetAccount(eos.AccountName(to))
 	if err != nil && accountTo == nil {
-		return openwallet.Errorf(openwallet.ErrAccountNotAddress, "[%s] have not addresses", accountID)
+		return fmt.Errorf("%s account of to not found on chain", decoder.wm.Symbol())
 	}
 
 	accountAssets, err := decoder.wm.Api.GetCurrencyBalance(eos.AccountName(account.Alias), tokenCoin, eos.AccountName(codeAccount))

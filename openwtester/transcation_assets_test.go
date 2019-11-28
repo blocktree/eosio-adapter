@@ -121,13 +121,13 @@ func TestTransfer(t *testing.T) {
 	tm := testInitWalletManager()
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
 	accountID := "D9VaHgK694tJ7AkSCmKpUHotN3XrrFqPHQGMnTypBVEU"
-	to := "eostesterbob"
+	to := "chinagogogog"
 
 	//accountID := "F7aeTnSdjEA16x4H3n1vPtDEo9Xp5Vus11pwY5QF6K3y"
 	//to := ""
 
 	contract := openwallet.SmartContract{
-		Address:  "eosio.token",
+		Address:  "eosio.token:EOS",
 		Symbol:   "EOS",
 		Name:     "EOS",
 		Token:    "EOS",
@@ -136,7 +136,7 @@ func TestTransfer(t *testing.T) {
 
 	testGetAssetsAccountBalance(tm, walletID, accountID)
 
-	rawTx, err := testCreateTransactionStep(tm, walletID, accountID, to, "2", "", "hello boy", &contract)
+	rawTx, err := testCreateTransactionStep(tm, walletID, accountID, to, "0.001", "", "hello boy", &contract)
 	if err != nil {
 		return
 	}
