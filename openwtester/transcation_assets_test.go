@@ -120,7 +120,7 @@ func testSubmitTransactionStep(tm *openw.WalletManager, rawTx *openwallet.RawTra
 func TestTransfer(t *testing.T) {
 	tm := testInitWalletManager()
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
-	accountID := "D9VaHgK694tJ7AkSCmKpUHotN3XrrFqPHQGMnTypBVEU"
+	accountID := "2MySbxhZwodeiyG3ehBRgTQPBN3HtaQumByeUNF38QJK"
 	to := "chinagogogog"
 
 	//accountID := "F7aeTnSdjEA16x4H3n1vPtDEo9Xp5Vus11pwY5QF6K3y"
@@ -163,11 +163,11 @@ func TestTransfer(t *testing.T) {
 func TestSummary(t *testing.T) {
 	tm := testInitWalletManager()
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
-	accountID := "AwxbDgWv6d8DUFk36SNWGw3y6GE9RbZtVGjAsQqP3u5y"
-	summaryAddress := "eostesterabc"
+	accountID := "2MySbxhZwodeiyG3ehBRgTQPBN3HtaQumByeUNF38QJK"
+	summaryAddress := "chinagogogog"
 
 	contract := openwallet.SmartContract{
-		Address:  "eosio.token",
+		Address:  "eosio.token:EOS",
 		Symbol:   "EOS",
 		Name:     "EOS",
 		Token:    "EOS",

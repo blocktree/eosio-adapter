@@ -245,7 +245,7 @@ func (decoder *TransactionDecoder) SubmitRawTransaction(wrapper openwallet.Walle
 		return nil, err
 	}
 
-	response, err := decoder.wm.Api.PushTransaction(packedTx)
+	response, err := decoder.wm.BroadcastAPI.PushTransaction(packedTx)
 	if err != nil {
 		return nil, fmt.Errorf("push transaction: %s", err)
 	}

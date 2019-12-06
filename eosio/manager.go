@@ -25,6 +25,7 @@ type WalletManager struct {
 	openwallet.AssetsAdapterBase
 
 	Api             *eos.API                        // 节点客户端
+	BroadcastAPI    *eos.API                        //广播交易节点
 	Config          *WalletConfig                   // 节点配置
 	Decoder         openwallet.AddressDecoder       //地址编码器
 	TxDecoder       openwallet.TransactionDecoder   //交易单编码器

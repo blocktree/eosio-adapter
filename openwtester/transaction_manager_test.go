@@ -119,11 +119,10 @@ func TestWalletManager_GetAssetsAccountBalance(t *testing.T) {
 func TestWalletManager_GetAssetsAccountTokenBalance(t *testing.T) {
 	tm := testInitWalletManager()
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
-	//accountID := "D9VaHgK694tJ7AkSCmKpUHotN3XrrFqPHQGMnTypBVEU"
-	accountID := "AwxbDgWv6d8DUFk36SNWGw3y6GE9RbZtVGjAsQqP3u5y"
+	accountID := "2MySbxhZwodeiyG3ehBRgTQPBN3HtaQumByeUNF38QJK"
 
 	contract := openwallet.SmartContract{
-		Address:  "eosio.token",
+		Address:  "eosio.token:EOS",
 		Symbol:   "EOS",
 		Name:     "EOS",
 		Token:    "EOS",

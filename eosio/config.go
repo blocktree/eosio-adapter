@@ -62,6 +62,8 @@ type WalletConfig struct {
 	//ChainID uint64
 	//数据目录
 	DataDir string
+	//broadcast tx api url
+	BroadcastAPI string
 }
 
 func NewConfig(symbol string) *WalletConfig {

@@ -11,8 +11,10 @@ openwtester包下的测试用例已经集成了openwallet钱包体系，创建co
 
 ```ini
 
-#wallet api url
-ServerAPI = "https://localhost:8080"
+# wallet api url
+serverAPI = "https://mainnet.eoscanada.com"
+# broadcast tx api url
+broadcastAPI = "https://mainnet.eoscanada.com"
 # Cache data file directory, default = "", current directory: ./data
 dataDir = ""
 

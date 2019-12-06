@@ -67,7 +67,9 @@ func (wm *WalletManager) GetBlockScanner() openwallet.BlockScanner {
 func (wm *WalletManager) LoadAssetsConfig(c config.Configer) error {
 
 	wm.Config.ServerAPI = c.String("serverAPI")
+	wm.Config.BroadcastAPI = c.String("broadcastAPI")
 	wm.Api = eos.New(wm.Config.ServerAPI)
+	wm.BroadcastAPI = eos.New(wm.Config.BroadcastAPI)
 	wm.Config.DataDir = c.String("dataDir")
 	wm.client = NewClient(wm.Config.ServerAPI, false)
 

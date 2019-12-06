@@ -82,7 +82,7 @@ func TestWalletManager_CreateAssetsAccount(t *testing.T) {
 	tm := testInitWalletManager()
 
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
-	account := &openwallet.AssetsAccount{Alias: "eostesterbob", WalletID: walletID, Required: 1, Symbol: "EOS", IsTrust: true}
+	account := &openwallet.AssetsAccount{Alias: "hrt3arlcl354", WalletID: walletID, Required: 1, Symbol: "EOS", IsTrust: true}
 	account, address, err := tm.CreateAssetsAccount(testApp, walletID, "12345678", account, nil)
 	if err != nil {
 		log.Error(err)
@@ -99,7 +99,7 @@ func TestWalletManager_GetAssetsAccountList(t *testing.T) {
 
 	tm := testInitWalletManager()
 
-	walletID := "WGVsUfTTVaCwAMRTqeJiDQsZ3vrWp9DzMA"
+	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
 	list, err := tm.GetAssetsAccountList(testApp, walletID, 0, 10000000)
 	if err != nil {
 		log.Error("unexpected error:", err)
@@ -135,8 +135,8 @@ func TestWalletManager_GetAddressList(t *testing.T) {
 
 	tm := testInitWalletManager()
 
-	walletID := "VzMPgLhU83HbsGabLDAzyAM5NaY14d6gZc"
-	accountID := "2UdnebpnSAk8b5btBD5e5dAQLcankywAX3ACaz7deim3"
+	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
+	accountID := "2MySbxhZwodeiyG3ehBRgTQPBN3HtaQumByeUNF38QJK"
 	list, err := tm.GetAddressList(testApp, walletID, accountID, 0, -1, false)
 	if err != nil {
 		log.Error("unexpected error:", err)
