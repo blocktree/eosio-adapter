@@ -29,6 +29,7 @@ import (
 ////////////////////////// 测试单个扫描器 //////////////////////////
 
 type subscriberSingle struct {
+	manager *openw.WalletManager
 }
 
 //BlockScanNotify 新区块扫描完成通知
@@ -51,6 +52,22 @@ func (sub *subscriberSingle) BlockExtractDataNotify(sourceKey string, data *open
 
 	log.Std.Notice("data.Transaction: %+v", data.Transaction)
 
+
+	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
+	accountID := "2MySbxhZwodeiyG3ehBRgTQPBN3HtaQumByeUNF38QJK"
+
+	contract := openwallet.SmartContract{
+		Address:  "eosio.token:EOS",
+		Symbol:   "EOS",
+		Name:     "EOS",
+		Token:    "EOS",
+		Decimals: 4,
+	}
+
+	balance, _ := sub.manager.GetAssetsAccountTokenBalance(testApp, walletID, accountID, contract)
+
+	log.Std.Notice("account balance: %+v", balance.Balance)
+
 	return nil
 }
 
@@ -60,8 +77,8 @@ func TestSubscribeAddress_EOS(t *testing.T) {
 		endRunning = make(chan bool, 1)
 		symbol     = "EOS"
 		addrs      = map[string]string{
-			"zgbnpn3aybgl": "sender",
-			"eospokedice1": "receiver",
+			"hrt3arlcl354": "sender",
+			"chinagogogog": "receiver",
 		}
 	)
 
@@ -109,7 +126,7 @@ func TestSubscribeAddress_EOS(t *testing.T) {
 		scanner.SetBlockchainDAI(dai)
 	}
 
-	//scanner.SetRescanBlockHeight(89487725)
+	//scanner.SetRescanBlockHeight(94240826)
 
 	if scanner == nil {
 		log.Error(symbol, "is not support block scan")
@@ -118,7 +135,7 @@ func TestSubscribeAddress_EOS(t *testing.T) {
 
 	scanner.SetBlockScanTargetFunc(scanAddressFunc)
 
-	sub := subscriberSingle{}
+	sub := subscriberSingle{manager:tw}
 	scanner.AddObserver(&sub)
 
 	scanner.Run()

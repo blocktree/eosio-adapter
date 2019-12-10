@@ -72,7 +72,7 @@ func NewEOSBlockScanner(wm *WalletManager) *EOSBlockScanner {
 	bs.extractingCH = make(chan struct{}, maxExtractingSize)
 	bs.wm = wm
 	bs.IsScanMemPool = true
-	bs.RescanLastBlockCount = 0
+	bs.RescanLastBlockCount = 2
 	bs.MonitorActions = map[string]bool{
 		"transfer": true,
 	}
@@ -125,7 +125,7 @@ func (bs *EOSBlockScanner) ScanBlockTask() {
 		maxBlockHeight := infoResp.HeadBlockNum
 
 		bs.wm.Log.Info("current block height:", currentHeight, " maxBlockHeight:", maxBlockHeight)
-		if currentHeight == maxBlockHeight {
+		if currentHeight >= maxBlockHeight {
 			bs.wm.Log.Std.Info("block scanner has scanned full chain data. Current height %d", maxBlockHeight)
 			break
 		}
@@ -193,6 +193,11 @@ func (bs *EOSBlockScanner) ScanBlockTask() {
 			//通知新区块给观测者，异步处理
 			bs.newBlockNotify(block)
 		}
+	}
+
+	//重扫前N个块，为保证记录找到
+	for i := currentHeight - uint32(bs.RescanLastBlockCount); i <= currentHeight; i++ {
+		bs.scanBlock(uint64(i))
 	}
 
 	//重扫失败区块
@@ -579,7 +584,7 @@ func (bs *EOSBlockScanner) scanBlock(height uint64) (*eos.BlockResp, error) {
 		return nil, err
 	}
 
-	bs.wm.Log.Std.Info("block scanner scanning height: %d ...", block.ID.String())
+	bs.wm.Log.Std.Info("block scanner scanning height: %d ...", height)
 
 	err = bs.BatchExtractTransactions(uint64(block.BlockNum), block.ID.String(), block.Timestamp.Unix(), block.Transactions)
 	if err != nil {

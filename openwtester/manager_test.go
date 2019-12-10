@@ -15,7 +15,13 @@ var (
 	configFilePath = filepath.Join("conf")
 	dbFilePath = filepath.Join("data", "db")
 	dbFileName = "blockchain-eos.db"
+
+	tw *openw.WalletManager
 )
+
+func init() {
+	tw = testInitWalletManager()
+}
 
 
 func testInitWalletManager() *openw.WalletManager {
