@@ -26,7 +26,7 @@ import (
 )
 
 func TestWalletManager_GetTransactions(t *testing.T) {
-	tm := testInitWalletManager()
+	tm := tw
 	list, err := tm.GetTransactions(testApp, 0, -1, "Received", false)
 	if err != nil {
 		log.Error("GetTransactions failed, unexpected error:", err)
@@ -39,7 +39,7 @@ func TestWalletManager_GetTransactions(t *testing.T) {
 }
 
 func TestWalletManager_GetTxUnspent(t *testing.T) {
-	tm := testInitWalletManager()
+	tm := tw
 	list, err := tm.GetTxUnspent(testApp, 0, -1, "Received", false)
 	if err != nil {
 		log.Error("GetTxUnspent failed, unexpected error:", err)
@@ -52,7 +52,7 @@ func TestWalletManager_GetTxUnspent(t *testing.T) {
 }
 
 func TestWalletManager_GetTxSpent(t *testing.T) {
-	tm := testInitWalletManager()
+	tm := tw
 	list, err := tm.GetTxSpent(testApp, 0, -1, "Received", false)
 	if err != nil {
 		log.Error("GetTxSpent failed, unexpected error:", err)
@@ -65,7 +65,7 @@ func TestWalletManager_GetTxSpent(t *testing.T) {
 }
 
 func TestWalletManager_ExtractUTXO(t *testing.T) {
-	tm := testInitWalletManager()
+	tm := tw
 	unspent, err := tm.GetTxUnspent(testApp, 0, -1, "Received", false)
 	if err != nil {
 		log.Error("GetTxUnspent failed, unexpected error:", err)
@@ -84,7 +84,7 @@ func TestWalletManager_ExtractUTXO(t *testing.T) {
 }
 
 func TestWalletManager_GetTransactionByWxID(t *testing.T) {
-	tm := testInitWalletManager()
+	tm := tw
 	wxID := openwallet.GenTransactionWxID(&openwallet.Transaction{
 		TxID: "bfa6febb33c8ddde9f7f7b4d93043956cce7e0f4e95da259a78dc9068d178fee",
 		Coin: openwallet.Coin{
@@ -104,7 +104,7 @@ func TestWalletManager_GetTransactionByWxID(t *testing.T) {
 }
 
 func TestWalletManager_GetAssetsAccountBalance(t *testing.T) {
-	tm := testInitWalletManager()
+	tm := tw
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
 	accountID := "D9VaHgK694tJ7AkSCmKpUHotN3XrrFqPHQGMnTypBVEU"
 
@@ -117,7 +117,7 @@ func TestWalletManager_GetAssetsAccountBalance(t *testing.T) {
 }
 
 func TestWalletManager_GetAssetsAccountTokenBalance(t *testing.T) {
-	tm := testInitWalletManager()
+	tm := tw
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
 	accountID := "2MySbxhZwodeiyG3ehBRgTQPBN3HtaQumByeUNF38QJK"
 
@@ -138,7 +138,7 @@ func TestWalletManager_GetAssetsAccountTokenBalance(t *testing.T) {
 }
 
 func TestWalletManager_GetEstimateFeeRate(t *testing.T) {
-	tm := testInitWalletManager()
+	tm := tw
 	coin := openwallet.Coin{
 		Symbol: "EOS",
 	}

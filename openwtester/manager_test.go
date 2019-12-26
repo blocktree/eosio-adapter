@@ -41,7 +41,7 @@ func testInitWalletManager() *openw.WalletManager {
 }
 
 func TestWalletManager_CreateWallet(t *testing.T) {
-	tm := testInitWalletManager()
+	tm := tw
 	w := &openwallet.Wallet{Alias: "HELLO EOS", IsTrust: true, Password: "12345678"}
 	nw, key, err := tm.CreateWallet(testApp, w)
 	if err != nil {
@@ -56,7 +56,7 @@ func TestWalletManager_CreateWallet(t *testing.T) {
 
 func TestWalletManager_GetWalletInfo(t *testing.T) {
 
-	tm := testInitWalletManager()
+	tm := tw
 
 	wallet, err := tm.GetWalletInfo(testApp, "W7tue6SDce38fPwerdKqyebUh6yo2nTQLC")
 	if err != nil {
@@ -68,7 +68,7 @@ func TestWalletManager_GetWalletInfo(t *testing.T) {
 
 func TestWalletManager_GetWalletList(t *testing.T) {
 
-	tm := testInitWalletManager()
+	tm := tw
 
 	list, err := tm.GetWalletList(testApp, 0, 10000000)
 	if err != nil {
@@ -85,7 +85,7 @@ func TestWalletManager_GetWalletList(t *testing.T) {
 
 func TestWalletManager_CreateAssetsAccount(t *testing.T) {
 
-	tm := testInitWalletManager()
+	tm := tw
 
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
 	account := &openwallet.AssetsAccount{Alias: "hrt3arlcl354", WalletID: walletID, Required: 1, Symbol: "EOS", IsTrust: true}
@@ -103,7 +103,7 @@ func TestWalletManager_CreateAssetsAccount(t *testing.T) {
 
 func TestWalletManager_GetAssetsAccountList(t *testing.T) {
 
-	tm := testInitWalletManager()
+	tm := tw
 
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
 	list, err := tm.GetAssetsAccountList(testApp, walletID, 0, 10000000)
@@ -122,7 +122,7 @@ func TestWalletManager_GetAssetsAccountList(t *testing.T) {
 
 func TestWalletManager_CreateAddress(t *testing.T) {
 
-	tm := testInitWalletManager()
+	tm := tw
 
 	walletID := "WGVsUfTTVaCwAMRTqeJiDQsZ3vrWp9DzMA"
 	accountID := "CbnmpvJNsUjtEMRoy5Nf5FGTyfjLbke8FuKjKtEUc7fs"
@@ -139,7 +139,7 @@ func TestWalletManager_CreateAddress(t *testing.T) {
 
 func TestWalletManager_GetAddressList(t *testing.T) {
 
-	tm := testInitWalletManager()
+	tm := tw
 
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
 	accountID := "2MySbxhZwodeiyG3ehBRgTQPBN3HtaQumByeUNF38QJK"

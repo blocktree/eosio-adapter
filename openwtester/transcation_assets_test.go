@@ -161,7 +161,7 @@ func TestTransfer(t *testing.T) {
 }
 
 func TestSummary(t *testing.T) {
-	tm := testInitWalletManager()
+	tm := tw
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
 	accountID := "2MySbxhZwodeiyG3ehBRgTQPBN3HtaQumByeUNF38QJK"
 	summaryAddress := "chinagogogog"
