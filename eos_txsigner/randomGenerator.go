@@ -1,13 +1,6 @@
 package eos_txsigner
 
-import (
-	"bytes"
-	"crypto/sha256"
-	"math/big"
-
-	owcrypt "github.com/blocktree/go-owcrypt"
-)
-
+/*
 func int2octets(v *big.Int, rolen int) []byte {
 	out := v.Bytes()
 
@@ -107,3 +100,6 @@ func generateRandomFromNonce(privateKey, hash []byte, nonce int) []byte {
 		v = owcrypt.Hmac(k, v, owcrypt.HMAC_SHA256_ALG)
 	}
 }
+
+
+*/

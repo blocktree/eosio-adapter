@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blocktree/eosio-adapter/eos_txsigner"
 	"github.com/blocktree/go-owcrypt"
 
 	"github.com/eoscanada/eos-go/ecc"
@@ -154,14 +153,17 @@ func (decoder *TransactionDecoder) SignRawTransaction(wrapper openwallet.WalletD
 				return fmt.Errorf("decoder transaction hash failed, unexpected err: %v", err)
 			}
 
-			decoder.wm.Log.Debug("hash:", hash)
+			//decoder.wm.Log.Debug("hash:", keySignature.Message)
 
-			sig, err := eos_txsigner.Default.SignTransactionHash(hash, keyBytes, decoder.wm.CurveType())
-			if err != nil {
-				return fmt.Errorf("sign transaction hash failed, unexpected err: %v", err)
+			//sig, err := eos_txsigner.Default.SignTransactionHash(hash, keyBytes, decoder.wm.CurveType())
+			signature, v, sigErr := owcrypt.Signature(keyBytes, nil, hash, decoder.wm.CurveType())
+			if sigErr == owcrypt.FAILURE {
+				return fmt.Errorf("sign transaction hash failed")
 			}
+			signature = append(signature, v)
+			keySignature.Signature = hex.EncodeToString(signature)
 
-			keySignature.Signature = hex.EncodeToString(sig)
+			//decoder.wm.Log.Debug("signature:", keySignature.Signature)
 		}
 	}
 
@@ -199,19 +201,29 @@ func (decoder *TransactionDecoder) VerifyRawTransaction(wrapper openwallet.Walle
 
 			messsage, _ := hex.DecodeString(keySignature.Message)
 			signature, _ := hex.DecodeString(keySignature.Signature)
-			publicKey, _ := hex.DecodeString(keySignature.Address.PublicKey)
+			//publicKey, _ := hex.DecodeString(keySignature.Address.PublicKey)
 
 			//验证签名，解压公钥，解压后首字节04要去掉
-			uncompessedPublicKey := owcrypt.PointDecompress(publicKey, decoder.wm.CurveType())
+			//uncompessedPublicKey := owcrypt.PointDecompress(publicKey, decoder.wm.CurveType())
 
-			valid, compactSig, err := eos_txsigner.Default.VerifyAndCombineSignature(messsage, uncompessedPublicKey[1:], signature)
-			if !valid {
+			_, valid := owcrypt.RecoverPubkey(signature, messsage, decoder.wm.CurveType())
+			//valid, compactSig, err := eos_txsigner.Default.VerifyAndCombineSignature(messsage, uncompessedPublicKey[1:], signature)
+			if valid == owcrypt.FAILURE {
 				return fmt.Errorf("transaction verify failed: %v", err)
 			}
 
+			//decoder.wm.Log.Debug("recover pubkey:", hex.EncodeToString(pub))
+			//decoder.wm.Log.Debug("uncompessedPublicKey:", hex.EncodeToString(uncompessedPublicKey))
+			v := signature[len(signature)-1] //签名最后一字节是v
+
+			//验签通过后处理V值，符合节点验签
+			comSig := signature[:len(signature)-1]
+			comSig = append([]byte{v+27+4}, comSig...)
+
+
 			stx.Signatures = append(
 				stx.Signatures,
-				ecc.Signature{Curve: ecc.CurveK1, Content: compactSig},
+				ecc.Signature{Curve: ecc.CurveK1, Content: comSig},
 			)
 		}
 	}
@@ -470,6 +482,7 @@ func (decoder *TransactionDecoder) createRawTransaction(
 					Nonce:   "",
 					Address: addr,
 					Message: hex.EncodeToString(sigDigest),
+					RSV:     true,
 				}
 				keySignList = append(keySignList, &signature)
 			}

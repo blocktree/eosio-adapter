@@ -1,9 +1,8 @@
 package eos_txsigner
 
-import (
-	"errors"
-	"github.com/blocktree/go-owcrypt"
-)
+/*
+
+
 
 func signRFC6979(privateKey, hash []byte, nonce int) ([]byte, error) {
 	k := generateRandomFromNonce(privateKey, hash, nonce)
@@ -96,3 +95,5 @@ func SignCanonical(privateKey, hash []byte) ([]byte, error) {
 	}
 	return nil, errors.New("couldn't find a canonical signature")
 }
+
+*/
