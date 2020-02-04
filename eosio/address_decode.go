@@ -16,15 +16,12 @@
 package eosio
 
 import (
-	"fmt"
-	"github.com/blocktree/openwallet/openwallet"
+	"github.com/blocktree/eosio-adapter/addrdec"
 	"github.com/eoscanada/eos-go"
-
-	"github.com/blocktree/go-owcdrivers/addressEncoder"
 )
 
 type addressDecoder struct {
-	*openwallet.AddressDecoderV2Base
+	addrdec.AddressDecoderV2
 	wm *WalletManager //钱包管理者
 }
 
@@ -37,17 +34,12 @@ func NewAddressDecoder(wm *WalletManager) *addressDecoder {
 
 //PrivateKeyToWIF 私钥转WIF
 func (decoder *addressDecoder) PrivateKeyToWIF(priv []byte, isTestnet bool) (string, error) {
-	wif := addressEncoder.AddressEncode(priv, addressEncoder.EOS_mainnetPrivateWIF)
-	if len(wif) == 0 {
-		return "", fmt.Errorf("private key can't be encode to WIF")
-	}
-	return wif, nil
+	return "", nil
 }
 
 //PublicKeyToAddress 公钥转地址
 func (decoder *addressDecoder) PublicKeyToAddress(pub []byte, isTestnet bool) (string, error) {
-	address := addressEncoder.AddressEncode(pub, addressEncoder.EOS_mainnetPublic)
-	return address, nil
+	return addrdec.Default.AddressEncode(pub)
 }
 
 //RedeemScriptToAddress 多重签名赎回脚本转地址
@@ -57,7 +49,7 @@ func (decoder *addressDecoder) RedeemScriptToAddress(pubs [][]byte, required uin
 
 //WIFToPrivateKey WIF转私钥
 func (decoder *addressDecoder) WIFToPrivateKey(wif string, isTestnet bool) ([]byte, error) {
-	priv, err := addressEncoder.AddressDecode(wif, addressEncoder.EOS_mainnetPrivateWIF)
+	priv, err := addrdec.Default.AddressDecode(wif)
 	if err != nil {
 		return nil, err
 	}
