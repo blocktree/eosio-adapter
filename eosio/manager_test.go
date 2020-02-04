@@ -59,7 +59,7 @@ func TestWalletManager_GetAccount(t *testing.T) {
 
 func TestWalletManager_GetBlock(t *testing.T) {
 	wm := testNewWalletManager()
-	r, err := wm.Api.GetBlockByNum(1000000)
+	r, err := wm.Api.GetBlockByNum(101983374)
 	if err != nil {
 		log.Errorf("unexpected error: %v", err)
 		return

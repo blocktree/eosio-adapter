@@ -187,3 +187,26 @@ func TestGetAddressBalance(t *testing.T) {
 		log.Infof("ConfirmBalance[%s] = %s", b.Address, b.ConfirmBalance)
 	}
 }
+
+
+func TestGetAddressVerify(t *testing.T) {
+	symbol := "EOS"
+	assetsMgr, err := openw.GetAssetsAdapter(symbol)
+	if err != nil {
+		log.Error(symbol, "is not support")
+		return
+	}
+	//读取配置
+	absFile := filepath.Join(configFilePath, symbol+".ini")
+
+	c, err := config.NewConfig("ini", absFile)
+	if err != nil {
+		return
+	}
+	assetsMgr.LoadAssetsConfig(c)
+	addrDec := assetsMgr.GetAddressDecoderV2()
+
+	flag := addrDec.AddressVerify("hrt3arlcl354")
+	log.Infof("flag: %v", flag)
+
+}
