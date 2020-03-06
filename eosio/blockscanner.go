@@ -381,8 +381,8 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 
 			_err := json.Unmarshal(bytes, &data)
 			if _err != nil {
-				bs.wm.Log.Std.Error("parse data error: %s", _err)
-				return ExtractResult{Success: false}
+				bs.wm.Log.Std.Info("parse data error: %s", _err)
+				return ExtractResult{Success: true}
 			}
 
 			if scanTargetFunc == nil {
