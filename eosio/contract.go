@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/blocktree/openwallet/openwallet"
+	"github.com/blocktree/openwallet/v2/openwallet"
 	"github.com/eoscanada/eos-go"
 	"github.com/shopspring/decimal"
 )

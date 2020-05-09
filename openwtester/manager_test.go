@@ -1,20 +1,20 @@
 package openwtester
 
 import (
-	"github.com/blocktree/openwallet/common/file"
+	"github.com/blocktree/openwallet/v2/common/file"
 	"path/filepath"
 	"testing"
 
-	"github.com/blocktree/openwallet/log"
-	"github.com/blocktree/openwallet/openw"
-	"github.com/blocktree/openwallet/openwallet"
+	"github.com/blocktree/openwallet/v2/log"
+	"github.com/blocktree/openwallet/v2/openw"
+	"github.com/blocktree/openwallet/v2/openwallet"
 )
 
 var (
 	testApp        = "assets-adapter"
 	configFilePath = filepath.Join("conf")
-	dbFilePath = filepath.Join("data", "db")
-	dbFileName = "blockchain-eos.db"
+	dbFilePath     = filepath.Join("data", "db")
+	dbFileName     = "blockchain-eos.db"
 
 	tw *openw.WalletManager
 )
@@ -22,7 +22,6 @@ var (
 func init() {
 	tw = testInitWalletManager()
 }
-
 
 func testInitWalletManager() *openw.WalletManager {
 	log.SetLogFuncCall(true)

@@ -16,14 +16,14 @@
 package openwtester
 
 import (
-	"github.com/blocktree/openwallet/common/file"
+	"github.com/blocktree/openwallet/v2/common/file"
 	"path/filepath"
 	"testing"
 
 	"github.com/astaxie/beego/config"
-	"github.com/blocktree/openwallet/log"
-	"github.com/blocktree/openwallet/openw"
-	"github.com/blocktree/openwallet/openwallet"
+	"github.com/blocktree/openwallet/v2/log"
+	"github.com/blocktree/openwallet/v2/openw"
+	"github.com/blocktree/openwallet/v2/openwallet"
 )
 
 ////////////////////////// 测试单个扫描器 //////////////////////////
@@ -52,7 +52,6 @@ func (sub *subscriberSingle) BlockExtractDataNotify(sourceKey string, data *open
 
 	log.Std.Notice("data.Transaction: %+v", data.Transaction)
 
-
 	walletID := "WEyoXkvytkkbK7RJLdoS4H7hbdjDAvRXjY"
 	accountID := "2MySbxhZwodeiyG3ehBRgTQPBN3HtaQumByeUNF38QJK"
 
@@ -67,6 +66,20 @@ func (sub *subscriberSingle) BlockExtractDataNotify(sourceKey string, data *open
 	balance, _ := sub.manager.GetAssetsAccountTokenBalance(testApp, walletID, accountID, contract)
 
 	log.Std.Notice("account balance: %+v", balance.Balance)
+
+	return nil
+}
+
+
+//BlockExtractSmartContractDataNotify 区块提取智能合约交易结果通知
+func (sub *subscriberSingle) BlockExtractSmartContractDataNotify(sourceKey string, data *openwallet.SmartContractReceipt) error {
+
+	log.Notice("sourceKey:", sourceKey)
+	log.Std.Notice("data.ContractTransaction: %+v", data)
+
+	for i, event := range data.Events {
+		log.Std.Notice("data.Events[%d]: %+v", i, event)
+	}
 
 	return nil
 }
@@ -126,7 +139,7 @@ func TestSubscribeAddress_EOS(t *testing.T) {
 		scanner.SetBlockchainDAI(dai)
 	}
 
-	//scanner.SetRescanBlockHeight(94240826)
+	//scanner.SetRescanBlockHeight(104560841)
 
 	if scanner == nil {
 		log.Error(symbol, "is not support block scan")
@@ -135,7 +148,7 @@ func TestSubscribeAddress_EOS(t *testing.T) {
 
 	scanner.SetBlockScanTargetFunc(scanAddressFunc)
 
-	sub := subscriberSingle{manager:tw}
+	sub := subscriberSingle{manager: tw}
 	scanner.AddObserver(&sub)
 
 	scanner.Run()

@@ -17,10 +17,11 @@ package eosio
 
 import (
 	"github.com/astaxie/beego/config"
+	"github.com/eoscanada/eos-go"
 	"path/filepath"
 	"testing"
 
-	"github.com/blocktree/openwallet/log"
+	"github.com/blocktree/openwallet/v2/log"
 )
 
 func testNewWalletManager() *WalletManager {
@@ -34,6 +35,7 @@ func testNewWalletManager() *WalletManager {
 	}
 	wm.LoadAssetsConfig(c)
 	wm.client.Debug = true
+	wm.Api.Debug = true
 	return wm
 }
 
@@ -59,7 +61,8 @@ func TestWalletManager_GetAccount(t *testing.T) {
 
 func TestWalletManager_GetBlock(t *testing.T) {
 	wm := testNewWalletManager()
-	r, err := wm.Api.GetBlockByNum(101983374)
+	//3152
+	r, err := wm.Api.GetBlockByNum(104761649)
 	if err != nil {
 		log.Errorf("unexpected error: %v", err)
 		return
@@ -69,12 +72,13 @@ func TestWalletManager_GetBlock(t *testing.T) {
 
 func TestWalletManager_GetTransaction(t *testing.T) {
 	wm := testNewWalletManager()
-	r, err := wm.Api.GetTransaction("498db83f0358ff7a9e32215d924be4df3e84bf7fef1614e241fb764afe3ecd8d")
+	r, err := wm.Api.GetTransaction("c7199c599098c3900fa6ff14813dca5becbaa8b4ca85fc4d8fdda94cd1005ab0")
 	if err != nil {
 		log.Errorf("unexpected error: %v", err)
 		return
 	}
 	log.Infof("%+v", r)
+
 }
 
 func TestWalletManager_GetABI(t *testing.T) {
@@ -89,10 +93,25 @@ func TestWalletManager_GetABI(t *testing.T) {
 
 func TestWalletManager_GetCurrencyBalance(t *testing.T) {
 	wm := testNewWalletManager()
-	r, err := wm.Api.GetCurrencyBalance("hrt3arlcl354", "EOS", "eosio.token")
+	r, err := wm.Api.GetCurrencyBalance("alice", "EOS", "eostesterxrv")
 	if err != nil {
 		log.Errorf("unexpected error: %v", err)
 		return
 	}
 	log.Infof("%+v", r)
+}
+
+func TestWalletManager_GetActions(t *testing.T) {
+	wm := testNewWalletManager()
+	r, err := wm.Api.GetActions(eos.GetActionsRequest{
+		AccountName: "bob",
+		Pos:         0,
+		Offset:      100,
+	})
+	if err != nil {
+		log.Errorf("unexpected error: %v", err)
+		return
+	}
+	log.Infof("%+v", r)
+	log.Infof("tx: %d", len(r.Actions))
 }

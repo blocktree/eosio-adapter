@@ -16,7 +16,7 @@
 package eosio
 
 import (
-	openwallet "github.com/blocktree/openwallet/openwallet"
+	openwallet "github.com/blocktree/openwallet/v2/openwallet"
 	eos "github.com/eoscanada/eos-go"
 )
 
@@ -46,6 +46,7 @@ type Block struct {
 	Height       uint32 `storm:"id"`
 	Fork         bool
 }
+
 //
 ////UnscanRecord 扫描失败的区块及交易
 //type UnscanRecord struct {

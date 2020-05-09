@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"testing"
 
-	openwallet "github.com/blocktree/openwallet/openwallet"
+	openwallet "github.com/blocktree/openwallet/v2/openwallet"
 	eos "github.com/eoscanada/eos-go"
 )
 

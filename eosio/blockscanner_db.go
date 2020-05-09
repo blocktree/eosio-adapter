@@ -17,7 +17,7 @@ package eosio
 
 import (
 	"fmt"
-	"github.com/blocktree/openwallet/openwallet"
+	"github.com/blocktree/openwallet/v2/openwallet"
 )
 
 //SaveLocalBlockHead 记录区块高度和hash到本地
@@ -141,11 +141,11 @@ func (bs *EOSBlockScanner) GetLocalBlock(height uint32) (*Block, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	block := &Block{
-		BlockHeader:  *header,
-		Height:       uint32(header.Height),
-		Fork:         header.Fork,
+		BlockHeader: *header,
+		Height:      uint32(header.Height),
+		Fork:        header.Fork,
 	}
 
 	return block, nil

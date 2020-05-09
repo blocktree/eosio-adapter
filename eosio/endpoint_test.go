@@ -16,7 +16,7 @@
 package eosio
 
 import (
-	"github.com/blocktree/openwallet/log"
+	"github.com/blocktree/openwallet/v2/log"
 	"testing"
 )
 
@@ -26,6 +26,19 @@ func TestClient_SendRPCRequest(t *testing.T) {
 		"account_name": "whaleex.com",
 	}
 	result, err := wm.client.SendRPCRequest("get_account", param)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+	log.Infof("result: %v", string(result))
+}
+
+func TestWalletManager_GetBlockHeaderState(t *testing.T) {
+	wm := testNewWalletManager()
+	param := map[string]interface{}{
+		"block_num_or_id": "41495",
+	}
+	result, err := wm.client.SendRPCRequest("get_block_header_state", param)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 		return

@@ -2,8 +2,8 @@ package openwtester
 
 import (
 	"github.com/blocktree/eosio-adapter/eosio"
-	"github.com/blocktree/openwallet/log"
-	"github.com/blocktree/openwallet/openw"
+	"github.com/blocktree/openwallet/v2/log"
+	"github.com/blocktree/openwallet/v2/openw"
 )
 
 func init() {

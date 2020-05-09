@@ -26,8 +26,8 @@ import (
 	"github.com/eoscanada/eos-go/ecc"
 	"github.com/eoscanada/eos-go/token"
 
-	"github.com/blocktree/openwallet/log"
-	"github.com/blocktree/openwallet/openwallet"
+	"github.com/blocktree/openwallet/v2/log"
+	"github.com/blocktree/openwallet/v2/openwallet"
 	"github.com/eoscanada/eos-go"
 	"github.com/shopspring/decimal"
 )
@@ -218,8 +218,7 @@ func (decoder *TransactionDecoder) VerifyRawTransaction(wrapper openwallet.Walle
 
 			//验签通过后处理V值，符合节点验签
 			comSig := signature[:len(signature)-1]
-			comSig = append([]byte{v+27+4}, comSig...)
-
+			comSig = append([]byte{v + 27 + 4}, comSig...)
 
 			stx.Signatures = append(
 				stx.Signatures,

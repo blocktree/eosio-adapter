@@ -21,17 +21,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/blocktree/openwallet/common"
+	"github.com/blocktree/openwallet/v2/common"
 
-	"github.com/blocktree/openwallet/log"
-	"github.com/blocktree/openwallet/openwallet"
+	"github.com/blocktree/openwallet/v2/log"
+	"github.com/blocktree/openwallet/v2/openwallet"
 	"github.com/eoscanada/eos-go"
 )
 
 const (
 	blockchainBucket = "blockchain" // blockchain dataset
 	//periodOfTask      = 5 * time.Second // task interval
-	maxExtractingSize = 10 // thread count
+	maxExtractingSize = 2 // thread count
 )
 
 //EOSBlockScanner EOS block scanner
@@ -358,7 +358,7 @@ func (bs *EOSBlockScanner) ExtractTransaction(blockHeight uint64, blockHash stri
 	for _, action := range signedTransaction.Actions {
 
 		if _, exist := bs.MonitorActions[string(action.Name)]; exist {
-		//if action.Name == "transfer" {
+			//if action.Name == "transfer" {
 
 			abiInfo, err := bs.wm.ContractDecoder.GetABIInfo(string(action.Account))
 			if err != nil {
@@ -668,7 +668,6 @@ func (bs *EOSBlockScanner) GetCurrentBlockHeader() (*openwallet.BlockHeader, err
 	}
 	return &openwallet.BlockHeader{Height: uint64(infoResp.HeadBlockNum), Hash: infoResp.HeadBlockID.String()}, nil
 }
-
 
 //rescanFailedRecord 重扫失败记录
 func (bs *EOSBlockScanner) RescanFailedRecord() {
